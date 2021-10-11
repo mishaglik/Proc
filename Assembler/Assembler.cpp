@@ -4,6 +4,11 @@
 #include "../lib/Logger.h"
 #include <string.h>
 
+extern const FileHeader asmHeadPtr;
+
+extern const char* outputFormat;
+extern const int SIGNATURE;
+
 void assemblyFile(const char* filename){
     LOG_ASSERT(filename != NULL);
 
@@ -24,6 +29,8 @@ void assemblyFile(const char* filename){
 }
 
 FILE* makeOutFile(const char* filename){
+    LOG_ASSERT(filename != NULL);
+
     char* outFilename = (char*)calloc(sizeof(filename) + sizeof(outputFormat), sizeof(char));
     strcat(outFilename, filename);
 
@@ -33,5 +40,46 @@ FILE* makeOutFile(const char* filename){
 
     strcat(outFilename, outputFormat);
 
-    FILE* outFile = fopen(outFilename, "w");
+    FILE* outFile = fopen(outFilename, "wb");
+    free(outFilename);
+
+    if(outFile == NULL){
+        LOG_MESSAGE(ERROR,"Error creating out file");
+        LOG_RAISE(ERROR);
+        return NULL;
+    }
+    
+    fwrite(&FILE_HEAD, sizeof(FileHeader), 1, outFile);
+
+    return outFile;
+}                                                                      
+
+void assemblyLine(const String* line, FILE* outFile){
+    LOG_ASSERT(line != NULL);
+    LOG_ASSERT(outFile != NULL);
+
+    //TODO: Do it better. Very crutchful;
+    char* commSym = strchr(line->pBegin, ';');
+    if(commSym != NULL){
+        *commSym = '\0';
+    }
+
+    char* commandStr = NULL;
+    proc_t argument = 0;
+    sscanf(line->pBegin,"%ms %d", &commandStr, &argument);
+    
+    if(commandStr == NULL)
+        return;
+
+#define STR_TO_COM(command)                                     \
+    if(strcmp(#command, commandStr) == 0) {                     \
+        fprintf(outFile, "%d", (int)ProcCommand::command);      \
+        if(hasArgument(ProcCommand::command))                   \
+            fwrite(&argument, sizeof(proc_t), 1, outFile);      \
+    } 
+    COMMAND_APPLY(STR_TO_COM);
+
+#undef STR_TO_COM
+    free(commandStr);
+
 }

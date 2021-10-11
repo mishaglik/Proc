@@ -1,4 +1,5 @@
 #include "Assembler.h"
+#include "../commands.h"
 
 int main(int argc, char* argv[]){
     if(argc < 2){

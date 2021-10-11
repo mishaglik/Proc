@@ -14,7 +14,7 @@ void assemblyFile(const char* filename);
  * 
  * @param line - line to asm.
  */
-void assemblyLine(const String* line, const FILE* outFile);
+void assemblyLine(const String* line,FILE* outFile);
 
 
 /**
