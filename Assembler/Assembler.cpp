@@ -26,10 +26,7 @@ void assemblyFile(const char* filename){
 
     LOG_DEBUG("Parsing text");
     parseText(&programm_txt);
-    /**
-     * @warning Using malloc do not forget sizeof.
-     * 
-     */
+
     Programm* programm = createProgramm();
 
     for(size_t line = 0; line < programm_txt.nStrings; ++line){

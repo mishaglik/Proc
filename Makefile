@@ -6,13 +6,6 @@ SOURCES_PROC = Proc.cpp main.cpp
 SOURCES_ASM  = Assembler.cpp main.cpp
 SOURCES_DASM = 
 LIBRARIES = Logger Stack File
-OBJECTS=$(SOURCES:.cpp=.o)
-EXECUTABLES = main
-
-all: $(SOURCES) main
-	
-main: $(OBJECTS) 
-	g++ main.cpp $(addprefix $(BUILD_DIR)/, $(OBJECTS)) -L$(LIB_DIR) $(addprefix -l, $(LIBRARIES)) -o build/$@
 
 common: Programm/commands.cpp Programm/commands.h Programm/Programm.cpp Programm/Programm.h
 	g++ Programm/commands.cpp -c -o build/commands.o -L$(LIB_DIR) $(CFLAGS) $(addprefix -l, $(LIBRARIES))
@@ -22,7 +15,7 @@ assembler: common
 	g++ Assembler/main.cpp Assembler/Assembler.cpp build/common.a -o build/assembler -L$(LIB_DIR) $(CFLAGS) $(addprefix -l, $(LIBRARIES)) 
 disassembler:
 
-processor:
-
+processor: common
+	g++ Processor/main.cpp Processor/Proc.cpp build/common.a -o build/processor -L$(LIB_DIR) $(CFLAGS) $(addprefix -l, $(LIBRARIES)) 
 clean:
 	rm build/*

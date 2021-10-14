@@ -16,7 +16,7 @@ Programm* freadProgramm(const char* filename){
     size_t fsize = getFileSize(file);
 
     FileHeader header = {};
-    if(fsize < sizeof(header) || fread(&header, sizeof(FileHeader), 1, file) != sizeof(FileHeader)){
+    if(fsize < sizeof(header) || !fread(&header, sizeof(FileHeader), 1, file)){
         LOG_MESSAGE_F(ERROR, "File \"%s\" is too small", filename);
         return NULL;
     }
