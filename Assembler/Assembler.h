@@ -1,5 +1,9 @@
+#ifndef PROC_ASSEMBLER_ASSEMBLER_H
+#define PROC_ASSEMBLER_ASSEMBLER_H
+
 #include "../lib/Logger.h"
 #include "../lib/text.h"
+#include "../Programm/Programm.h"
 
 /**
  * @brief Assleblying file with given filename
@@ -14,7 +18,7 @@ void assemblyFile(const char* filename);
  * 
  * @param line - line to asm.
  */
-void assemblyLine(const String* line,FILE* outFile);
+void assemblyLine(Programm* programm, const String* line);
 
 
 /**
@@ -23,4 +27,6 @@ void assemblyLine(const String* line,FILE* outFile);
  * @param filename - input file name
  * @return FILE* - pointer to created file
  */
-FILE* makeOutFile(const char* filename);
+char* makeOutFilename(const char* filename);
+
+#endif

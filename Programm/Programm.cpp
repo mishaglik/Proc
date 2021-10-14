@@ -47,10 +47,10 @@ void fwriteProgramm(const char* filename, Programm* programm){
     FILE* file = fopen(filename, "wb");
     LOG_ASSERT(filename != NULL);
 
-    LOG_ASSERT(fwrite(&FILE_HEAD, sizeof(FileHeader), 1, file) == sizeof(FileHeader));
+    LOG_ASSERT(fwrite(&FILE_HEAD, sizeof(FileHeader), 1, file));
 
     LOG_ASSERT(programm->proc_cnt < programm->size);
-    LOG_ASSERT(fwrite(&programm->data, sizeof(char), programm->proc_cnt, file) == programm->proc_cnt);
+    LOG_ASSERT(fwrite(programm->data, sizeof(char), programm->proc_cnt, file) == programm->proc_cnt);
     
     fclose(file);
 }

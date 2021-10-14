@@ -14,13 +14,15 @@ all: $(SOURCES) main
 main: $(OBJECTS) 
 	g++ main.cpp $(addprefix $(BUILD_DIR)/, $(OBJECTS)) -L$(LIB_DIR) $(addprefix -l, $(LIBRARIES)) -o build/$@
 
-assembler:
-	g++ Assembler/main.cpp Assembler/Assembler.cpp -o build/assembler commands.cpp -L$(LIB_DIR) $(CFLAGS) $(addprefix -l, $(LIBRARIES)) 
+common: Programm/commands.cpp Programm/commands.h Programm/Programm.cpp Programm/Programm.h
+	g++ Programm/commands.cpp -c -o build/commands.o -L$(LIB_DIR) $(CFLAGS) $(addprefix -l, $(LIBRARIES))
+	g++ Programm/Programm.cpp -c -o build/Programm.o -L$(LIB_DIR) $(CFLAGS) $(addprefix -l, $(LIBRARIES))
+	ar rvs build/common.a  build/commands.o build/Programm.o 
+assembler: common
+	g++ Assembler/main.cpp Assembler/Assembler.cpp build/common.a -o build/assembler -L$(LIB_DIR) $(CFLAGS) $(addprefix -l, $(LIBRARIES)) 
 disassembler:
-processor:
 
-.cpp.o:
-	g++ -c $(CFLAGS) $(SANFLAGS) $< -o $(BUILD_DIR)/$@
+processor:
 
 clean:
 	rm build/*
