@@ -1,24 +1,51 @@
-LIB_DIR = ./lib
-BUILD_DIR = ./bin
-SRC_DIR = ./src
-CFLAGS = `cat $(LIB_DIR)/Cflags`
-SANFLAGS = `cat $(LIB_DIR)/SanitizeFlags`
-SOURCES_PROC = Proc.cpp main.cpp
-SOURCES_ASM  = Assembler.cpp main.cpp
-SOURCES_DASM = 
+LIB_DIR = lib/
+BIN_DIR = bin/
+SRC_DIR = src/
+
+PRC_DIR = Processor/
+ASM_DIR = Assembler/
+DSM_DIR = Disassembler/
+
 LIBRARIES = Logger Stack File
 
-all: assembler processor disassembler
+CXXFLAGS = `cat $(LIB_DIR)Cflags`
+SANFLAGS = `cat $(LIB_DIR)SanitizeFlags`
+LXXFLAGS = -L$(LIB_DIR) $(addprefix -l, $(LIBRARIES))
 
-common: Programm/commands.cpp Programm/commands.h Programm/Programm.cpp Programm/Programm.h
-	g++ Programm/commands.cpp -c -o build/commands.o -L$(LIB_DIR) $(CFLAGS) $(addprefix -l, $(LIBRARIES))
-	g++ Programm/Programm.cpp -c -o build/Programm.o -L$(LIB_DIR) $(CFLAGS) $(addprefix -l, $(LIBRARIES))
-	ar rvs build/common.a  build/commands.o build/Programm.o 
-assembler: common
-	g++ Assembler/main.cpp Assembler/Assembler.cpp build/common.a -o assembler -L$(LIB_DIR) $(CFLAGS) $(addprefix -l, $(LIBRARIES)) 
-disassembler:
+SOURCES_PRC = Proc.cpp
+SOURCES_ASM = Assembler.cpp
+SOURCES_DSM = 
+SOURCES_COM = commands.cpp Programm.cpp
 
-processor: common
-	g++ Processor/main.cpp Processor/Proc.cpp build/common.a -o build/processor -L$(LIB_DIR) $(CFLAGS) $(addprefix -l, $(LIBRARIES)) 
+EXECUTABLE  = main.cpp
+
+
+SRC_PRC = $(addprefix $(PRC_DIR), $(SOURCES_PRC) $(EXECUTABLE))
+SRC_ASM = $(addprefix $(ASM_DIR), $(SOURCES_ASM) $(EXECUTABLE))
+SRC_DSM = $(addprefix $(DSM_DIR), $(SOURCES_DSM) $(EXECUTABLE))
+SRC_COM = 						  $(SOURCES_COM)
+
+OBJ_PRC = $(SRC_PRC:.cpp=.o) 
+OBJ_ASM = $(SRC_ASM:.cpp=.o) 
+OBJ_DSM = $(SRC_DSM:.cpp=.o) 
+OBJ_COM = $(SRC_COM:.cpp=.o)
+
+TARGETS = prc asm dsm
+
+all: $(TARGETS)
+
+prc: $(addprefix $(BIN_DIR), $(OBJ_PRC) $(OBJ_COM))
+	g++ $(CXXFLAGS) $^ $(LXXFLAGS) -o $@
+
+asm: $(addprefix $(BIN_DIR), $(OBJ_ASM) $(OBJ_COM))
+	g++ $(CXXFLAGS) $^ $(LXXFLAGS) -o $@
+
+dsm: $(addprefix $(BIN_DIR), $(OBJ_DSM) $(OBJ_COM))
+	g++ $(CXXFLAGS) $^ $(LXXFLAGS) -o $@
+
+$(BIN_DIR)%.o : $(SRC_DIR)%.cpp
+	g++ -c $(CXXFLAGS) $(LXXFLAGS) -o $@ $<
+
+.PHONY: clean
 clean:
-	rm $(BUILD_DIR)/*
+	rm -f $(BIN_DIR)$(ASM_DIR)* $(BIN_DIR)$(PRC_DIR)* $(BIN_DIR)$(DSM_DIR)*

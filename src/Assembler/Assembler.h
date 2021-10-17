@@ -1,9 +1,9 @@
 #ifndef PROC_ASSEMBLER_ASSEMBLER_H
 #define PROC_ASSEMBLER_ASSEMBLER_H
 
-#include "../lib/Logger.h"
-#include "../lib/text.h"
-#include "../Programm/Programm.h"
+#include "../../lib/Logger.h"
+#include "../../lib/text.h"
+#include "../Programm.h"
 
 /**
  * @brief Assleblying file with given filename

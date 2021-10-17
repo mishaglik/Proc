@@ -1,3 +1,0 @@
-23:03:59 [INFO]	Reading programm
-23:03:59 [INFO]	Begin executing programm
-23:03:59 [INFO]	Halting23:03:59 [INFO]	Finishing executing programm

@@ -1,7 +1,11 @@
 /lib
 /.vscode
-/build
+/bin
 /Tests
+prc
+asm
+dsm
+log.txt
 # Prerequisites
 *.d
 

@@ -1,10 +1,10 @@
 #ifndef PROC_PROC_H
 #define PROC_PROC_H
 
-#include "../lib/Logger.h"
-#include "../lib/Stack.h"
-#include "../lib/version.h"
-#include "../Programm/Programm.h"
+#include "../../lib/Logger.h"
+#include "../../lib/Stack.h"
+#include "../../lib/version.h"
+#include "../Programm.h"
 
 /**
  * @brief Executes file with given name
