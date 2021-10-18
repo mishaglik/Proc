@@ -27,9 +27,18 @@ void executeFile(const char* filename){
             argument = *(proc_arg_t*)(executable->data + executable->proc_cnt);
             executable->proc_cnt += sizeof(proc_arg_t);
         }
+
+//+++++++++++++++++++++++++++++++++++++++++++++++
+        #define COM_DEF(name, value, code, ...) \
+            case ProcCommand::name:             \
+            {code}                              \
+            break;                              \
+//+++++++++++++++++++++++++++++++++++++++++++++++
+
         switch (instruction)
         {
-        case ProcCommand::hlt:
+        #include "../commands.h"
+        /*case ProcCommand::hlt:
             LOG_MESSAGE_F(INFO, "Halting\n");
             goto finish;
             break;
@@ -80,11 +89,12 @@ void executeFile(const char* filename){
             scanf(stack_element_format, &tmp1);
             stack_push(&stack,tmp1);
             break;
-
+*/
         default:
             LOG_MESSAGE_F(FATAL,"Unknown instruction with code %d\n", (int)instruction);
             break;
         }
+    #undef COM_DEF
     }
     finish:
     LOG_MESSAGE_F(INFO, "Finishing executing programm\n");

@@ -1,39 +1,50 @@
-#ifndef PROC_COMMANDS_H
-#define PROC_COMMANDS_H 
-#include "stdlib.h"
-
-
-#define COMMAND_APPLY(MACRO) MACRO(hlt) MACRO(push) MACRO(add) MACRO(sub) MACRO(mul) MACRO(div) MACRO(in) MACRO(out) MACRO(pop)
-
-typedef int  proc_arg_t;
-typedef char proc_com_t;
-
-
-enum class ProcCommand{
-    hlt   = 0x00,
-    push  = 0x01,
-    pop   = 0x02,
-    add   = 0x03,
-    sub   = 0x04,
-    mul   = 0x05,
-    div   = 0x06,
-    out   = 0x07,
-    in    = 0x08,
-};
-
 /**
- * @brief Returns string enumeration of command
- * 
- * @param command - command to find char equivalent.
- * @return const char* 
+ * We use marco COM_DEF(name, value, code)
+ * name  - name of command
+ * value - number of format 0b00000000
+ *                            ^^^
+ *                             ||
+ * TODO: Documentation  
  */
-const char* strCommand(const ProcCommand command);
 
-/**
- * @brief Checks if coommand require argument
- * 
- * @param command - command
- * @return int 
- */
-int hasArgument(const ProcCommand command);
+
+
+#ifndef COM_DEF
+#error  COM_DEF not defined
 #endif
+
+COM_DEF(hlt,    0b00000000, {
+    
+})
+
+COM_DEF(push,   0b11100001, {
+
+})
+
+COM_DEF(pop,    0b00000010, {
+
+})
+
+COM_DEF(add,    0b00000011, {
+
+})
+
+COM_DEF(sub,    0b00000100, {
+
+})
+
+COM_DEF(mul,    0b00000101, {
+
+})
+
+COM_DEF(div,    0b00000110, {
+
+})
+
+COM_DEF(out,    0b00000111, {
+
+})
+
+COM_DEF(in ,    0b00001000, {
+
+})

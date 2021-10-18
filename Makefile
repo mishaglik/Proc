@@ -12,13 +12,20 @@ CXXFLAGS = `cat $(LIB_DIR)Cflags`
 SANFLAGS = `cat $(LIB_DIR)SanitizeFlags`
 LXXFLAGS = -L$(LIB_DIR) $(addprefix -l, $(LIBRARIES))
 
+MAJOR_VERSION = 1
+MINOR_VERSION = 2
+BUILD_VERSION = `cat bld_version`
+
+CXXFLAGS += -DMAJOR_VERSION=$(MAJOR_VERSION)
+CXXFLAGS += -DMINOR_VERSION=$(MINOR_VERSION)
+CXXFLAGS += -DBUILD_VERSION=$(BUILD_VERSION)
+
 SOURCES_PRC = Proc.cpp
 SOURCES_ASM = Assembler.cpp
 SOURCES_DSM = 
 SOURCES_COM = commands.cpp Programm.cpp
 
 EXECUTABLE  = main.cpp
-
 
 SRC_PRC = $(addprefix $(PRC_DIR), $(SOURCES_PRC) $(EXECUTABLE))
 SRC_ASM = $(addprefix $(ASM_DIR), $(SOURCES_ASM) $(EXECUTABLE))
@@ -49,3 +56,4 @@ $(BIN_DIR)%.o : $(SRC_DIR)%.cpp
 .PHONY: clean
 clean:
 	rm -f $(BIN_DIR)$(ASM_DIR)* $(BIN_DIR)$(PRC_DIR)* $(BIN_DIR)$(DSM_DIR)*
+	rm $(TARGETS)

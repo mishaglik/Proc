@@ -86,13 +86,18 @@ void assemblyLine(Programm* programm, const String* line){
         return;
     ProcCommand cur_command = (ProcCommand)(-1);
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#define STR_TO_COM(command)                                     \
-    if(strcmp(#command, commandStr) == 0) {                     \
-        cur_command = ProcCommand::command;                     \
-    }                                                           
+#define COM_DEF(name, value, ...)                               \
+    if(strcmp(#name, commandStr) == 0) {                         \
+        cur_command = ProcCommand::name;                        \
+    }else                                                       \
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    COMMAND_APPLY(STR_TO_COM);
-#undef STR_TO_COM
+    #include "../commands.h"
+    /*else*/{
+        LOG_ERROR("Unknown command. Compilation error");
+    }
+    #undef COM_DEF
+
+
     free(commandStr);
 
 

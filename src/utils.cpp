@@ -1,9 +1,9 @@
-#include "commands.h"
+#include "utils.h"
 #include "../lib/Logger.h"
 
 const char* outputFormat = ".out";
 
-#define CASE(x) case ProcCommand::x : return #x;
+#define COM_DEF(name,...) case ProcCommand::x : return #x;
 const char* strCommand(const ProcCommand command){
     switch (command)
     {
@@ -14,11 +14,11 @@ const char* strCommand(const ProcCommand command){
         return NULL;
     }
 }
-#undef CASE
+#undef COM_DEF
 
 
 //-----------------------------------------------------------------------------------------------------------
 
 int hasArgument(const ProcCommand command){
-    return command == ProcCommand::push;
+    return command & COMMAND_ARG_MASK;
 }
