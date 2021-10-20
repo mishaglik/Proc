@@ -12,9 +12,10 @@ CXXFLAGS = `cat $(LIB_DIR)Cflags`
 SANFLAGS = `cat $(LIB_DIR)SanitizeFlags`
 LXXFLAGS = -L$(LIB_DIR) $(addprefix -l, $(LIBRARIES))
 
-MAJOR_VERSION = 1
-MINOR_VERSION = 2
+MAJOR_VERSION = 2
+MINOR_VERSION = 1
 BUILD_VERSION = `cat bld_version`
+# TODO: Auto increment version
 
 CXXFLAGS += -DMAJOR_VERSION=$(MAJOR_VERSION)
 CXXFLAGS += -DMINOR_VERSION=$(MINOR_VERSION)
@@ -23,7 +24,7 @@ CXXFLAGS += -DBUILD_VERSION=$(BUILD_VERSION)
 SOURCES_PRC = Proc.cpp
 SOURCES_ASM = Assembler.cpp
 SOURCES_DSM = 
-SOURCES_COM = commands.cpp Programm.cpp
+SOURCES_COM = common.cpp
 
 EXECUTABLE  = main.cpp
 

@@ -3,30 +3,55 @@
 
 #include "../../lib/Logger.h"
 #include "../../lib/text.h"
-#include "../Programm.h"
+#include "../proc_t.h"
+#include "../utils.h"
+
+enum class CompilationError{
+    noErr = 0,
+    UnknownCommand,
+
+};
+
+struct Label{
+    proc_instruction_ptr_t ip;
+    char* name;
+}
+
+struct AsmData{
+    char* code  = NULL;
+    size_t capacity = 0;
+
+    proc_instruction_ptr_t ip = {0};
+
+    int nWalk = 0;
+
+    Label* label = NULL;
+
+    FILE* lstFile = NULL;
+}
 
 /**
- * @brief Assleblying file with given filename
+ * @brief Inits asmData with values
  * 
- * @param filename - name of file to assembly
+ * @param asmData 
  */
-void assemblyFile(const char* filename);
-
+void asmDataCtor(const AsmData *asmData);
 
 /**
- * @brief Assemblying one single line of code.
  * 
- * @param line - line to asm.
+ * @brief Expands asmData.
+ * 
+ * @param asmData 
  */
-void assemblyLine(Programm* programm, const String* line);
-
+void expandData(const AsmData *asmData);
 
 /**
- * @brief Create and prepares output file.
+ * @brief Assemblyes single line.
  * 
- * @param filename - input file name
- * @return FILE* - pointer to created file
+ * @param asmData current data.
+ * @param line  - string to compile
+ * @return CompilationError - error occuded during compilation 
  */
-char* makeOutFilename(const char* filename);
+CompilationError assemblyLine(const AsmData* asmData, const char* line);
 
 #endif

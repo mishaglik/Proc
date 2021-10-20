@@ -38,63 +38,11 @@ void executeFile(const char* filename){
         switch (instruction)
         {
         #include "../commands.h"
-        /*case ProcCommand::hlt:
-            LOG_MESSAGE_F(INFO, "Halting\n");
-            goto finish;
-            break;
-
-        case ProcCommand::push:
-            stack_push(&stack, argument);
-            break;
-
-        case ProcCommand::pop:
-            stack_pop(&stack);
-            break;
-
-        case ProcCommand::add:
-            stack_pop(&stack, &tmp1);
-            stack_pop(&stack, &tmp2);
-
-            stack_push(&stack, tmp1 + tmp2);
-            break; 
-
-        case ProcCommand::sub:
-            stack_pop(&stack, &tmp1);
-            stack_pop(&stack, &tmp2);
-
-            stack_push(&stack, tmp1 - tmp2);
-            break;
-
-        case ProcCommand::mul:
-            stack_pop(&stack, &tmp1);
-            stack_pop(&stack, &tmp2);
-
-            stack_push(&stack, tmp1 * tmp2);
-            break;
-
-        case ProcCommand::div:
-            stack_pop(&stack, &tmp1);
-            stack_pop(&stack, &tmp2);
-
-            stack_push(&stack, tmp1 / tmp2);
-            break;
-
-        case ProcCommand::out:
-            stack_pop(&stack, &tmp1);
-            printf(stack_element_format, tmp1);
-            printf("\n");
-            break;
-
-        case ProcCommand::in:
-            scanf(stack_element_format, &tmp1);
-            stack_push(&stack,tmp1);
-            break;
-*/
         default:
             LOG_MESSAGE_F(FATAL,"Unknown instruction with code %d\n", (int)instruction);
             break;
         }
-    #undef COM_DEF
+        #undef COM_DEF
     }
     finish:
     LOG_MESSAGE_F(INFO, "Finishing executing programm\n");

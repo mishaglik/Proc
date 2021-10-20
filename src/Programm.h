@@ -3,19 +3,11 @@
 #include "stdlib.h"
 #include "utils.h"
 #include "../lib/version.h"
-const int SIGNATURE = 'D&P';
+
 
 const size_t INIT_PROGRAMM_SIZE = 1024;
 const size_t PROG_EXPAND_COEF   = 2;
 
-struct FileHeader{
-    int signature  = 0;
-    int mj_version = 0;
-    int mn_verison = 0;
-    int bd_version = 0;
-};
-
-const FileHeader FILE_HEAD = {SIGNATURE, MAJOR_VERSION, MINOR_VERSION, BUILD_VERSION};
 
 struct Programm
 {    

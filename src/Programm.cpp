@@ -4,7 +4,7 @@
 
 
 
-Programm* freadProgramm(const char* filename){
+char* freadProgramm(const char* filename){
     LOG_ASSERT(filename != NULL);
 
     FILE* file = fopen(filename, "rb");
