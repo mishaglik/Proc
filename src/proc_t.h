@@ -11,15 +11,17 @@ struct FileHeader{
 };
 const int SIGNATURE = 'D&P';
 const FileHeader BIN_FILE_HEADER = {SIGNATURE, MAJOR_VERSION, MINOR_VERSION, BUILD_VERSION};
-const char* OUT_FORMAT = ".out";
 
-struct proc_command_t
-{
+union proc_command_t
+{   
+    unsigned char value;
+    struct{
     unsigned char id    :4;
     unsigned char isJump:1;
     unsigned char argImm:1;
     unsigned char argReg:1;
     unsigned char argMem:1;
+    } flags;
 };
 
 typedef int proc_arg_t;
@@ -32,8 +34,5 @@ union proc_instruction_ptr_t
 
 typedef unsigned int proc_err_t;
 
-proc_command_t numToCom(const char num){
-    return *(proc_command_t*)&num;
-}
 
 #endif

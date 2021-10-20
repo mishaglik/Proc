@@ -9,13 +9,15 @@
 enum class CompilationError{
     noErr = 0,
     UnknownCommand,
-
+    MemoryError,
+    RuntimeError,
+    SyntaxError,
 };
 
 struct Label{
     proc_instruction_ptr_t ip;
     char* name;
-}
+};
 
 struct AsmData{
     char* code  = NULL;
@@ -25,17 +27,18 @@ struct AsmData{
 
     int nWalk = 0;
 
-    Label* label = NULL;
+    Label* labels = NULL;
+    size_t nLabels = 0;
 
     FILE* lstFile = NULL;
-}
+};
 
 /**
  * @brief Inits asmData with values
  * 
  * @param asmData 
  */
-void asmDataCtor(const AsmData* asmData, const char* filename);
+void asmDataCtor(AsmData* asmData, const char* filename);
 
 /**
  * @brief 
@@ -58,7 +61,7 @@ int isToExpand(const AsmData* asmData);
  * 
  * @param asmData 
  */
-void expandData(const AsmData* asmData);
+void expandData(AsmData* asmData);
 
 /**
  * @brief Compiles file with given name. This MUST be a text file.
@@ -75,7 +78,7 @@ CompilationError assemblyFile(const char* filename);
  * @param line  - string to compile
  * @return CompilationError - error occuded during compilation 
  */
-CompilationError assemblyLine(const AsmData* asmData, const char* line);
+CompilationError assemblyLine(AsmData* asmData, char* line);
 
 /**
  * @brief Parces argument of command.
@@ -86,4 +89,28 @@ CompilationError assemblyLine(const AsmData* asmData, const char* line);
  */
 CompilationError parseArgument(const AsmData* asmData, const proc_command_t command);
 
+/**
+ * @brief Registers label with name;
+ * 
+ * @param asmData 
+ * @param name 
+ */
+void registerLabel(AsmData* asmData, const char* name);
+
+/**
+ * @brief Get the Label. If not found registers.
+ * 
+ * @param name 
+ * @return proc_instruction_ptr_t 
+ */
+proc_instruction_ptr_t getLabel(const char* name);
+
+/**
+ * @brief 
+ * 
+ * @param lstFile 
+ * @param format 
+ * @param ... 
+ */
+void lstWrite(FILE* lstFile, const char* format, ...);
 #endif

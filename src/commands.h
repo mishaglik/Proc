@@ -24,7 +24,7 @@ COM_DEF(push,   0b11100001, {
     PUSH(ARG);
 })
 
-COM_DEF(pop,    0b00000010, {
+COM_DEF(pop,    0b11100010, {
     POP(ARG);
 })
 
