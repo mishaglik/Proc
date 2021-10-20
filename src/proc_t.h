@@ -25,7 +25,7 @@ struct proc_command_t
 typedef int proc_arg_t;
 union proc_instruction_ptr_t
 {
-    int             value;
+    proc_arg_t      value;
     proc_command_t* commandPtr;
     proc_arg_t*     argPtr;
 };

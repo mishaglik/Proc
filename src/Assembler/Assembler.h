@@ -35,7 +35,22 @@ struct AsmData{
  * 
  * @param asmData 
  */
-void asmDataCtor(const AsmData *asmData);
+void asmDataCtor(const AsmData* asmData, const char* filename);
+
+/**
+ * @brief 
+ * 
+ * @param asmData 
+ */
+void asmDataDtor(AsmData* asmData);
+
+/**
+ * @brief 
+ * 
+ * @param asmData 
+ * @return int 
+ */
+int isToExpand(const AsmData* asmData);
 
 /**
  * 
@@ -43,7 +58,15 @@ void asmDataCtor(const AsmData *asmData);
  * 
  * @param asmData 
  */
-void expandData(const AsmData *asmData);
+void expandData(const AsmData* asmData);
+
+/**
+ * @brief Compiles file with given name. This MUST be a text file.
+ * 
+ * @param filename 
+ * @return CompilationError 
+ */
+CompilationError assemblyFile(const char* filename);
 
 /**
  * @brief Assemblyes single line.
@@ -53,5 +76,14 @@ void expandData(const AsmData *asmData);
  * @return CompilationError - error occuded during compilation 
  */
 CompilationError assemblyLine(const AsmData* asmData, const char* line);
+
+/**
+ * @brief Parces argument of command.
+ * 
+ * @param asmData 
+ * @param command 
+ * @return CompilationError 
+ */
+CompilationError parseArgument(const AsmData* asmData, const proc_command_t command);
 
 #endif

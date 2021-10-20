@@ -11,11 +11,16 @@ const size_t PROGRAM_MIN_SZ = 1024;
 const size_t EXPAND_COEF    = 2;
 const size_t TO_EXPAND      = 4*sizeof(int);
 
+const int ASM_WALKS = 0;
+
 CompilationError assemblyFile(const char* filename){
     LOG_ASSERT(filename != NULL);
 
+//#######################Init and reading##################################################
+
     CompilationError err = CompilationError::noErr;
     AsmData asmData = {};
+    asmDataCtor(&asmData, filename);
 
     LOG_MESSAGE_F(INFO, "Beginning assemblying file %s\n", filename);
     
@@ -26,67 +31,39 @@ CompilationError assemblyFile(const char* filename){
     }
     Text programm_txt = {};
     
-    FILE* lstFile = makeFileOut(filename, LST_FORMAT);
     LOG_ASSERT(filename != NULL);
 
     LOG_DEBUG("Reading text");
     readTextf(inFile, &programm_txt);
     fclose(inFile);
 
-    LOG_DEBUG("Parsing text");
+//##################Parsing nd Assemblying#########################################################
+    LOG_DEBUG("Begin parsing text");
     parseText(&programm_txt);
 
-    //TODO: replace as vector;
-    char* programm_data = (char*)calloc(PROGRAM_MIN_SZ, sizeof(char));
-    size_t data_size = PROGRAM_MIN_SZ;
-
-    proc_instruction_ptr_t ip = {0};
-
-    for(size_t line = 0; line < programm_txt.nStrings; ++line){
-        err = assemblyLine(data, &ip, programm_txt.strings + line)
-       
-        if(err) break;
-
-        if(data_size - ip.value < TO_EXPAND){
-            programm_data = (char*)realloc(programm_data, data_size *= EXPAND_COEF);
-            LOG_ASSERT(programm_data != NULL);
+    for(; asmData.nWalk < ASM_WALKS && !err; asmData.nWalk++){
+        for(size_t line = 0; line < programm_txt.nStrings && !err; ++line){
+            err = assemblyLine(asmData, programm_txt.strings[line].pBegin);
         }
     }
 
+//##########################Output and freeing#####################################################
+    if(!err){
+        FILE* outFile = makeOutFile(filename);
+        LOG_ASSERT(outFile != NULL);
 
-    FILE* outFile = makeOutFile(filename);
-    LOG_ASSERT(outFile != NULL);
+        fwrite(&BIN_FILE_HEADER, sizeof(FileHeader), 1,              outFile);
+        fwrite(data,             sizeof(char),       ip.instructPtr, outFile);
 
-    fwrite(&BIN_FILE_HEADER, sizeof(FileHeader), 1,              outFile);
-    fwrite(data,             sizeof(char),       ip.instructPtr, outFile);
-    
-    fclose(lstFile);
-    fclose(outFile);
+        fclose(outFile);
+    }
     freeText(&programm_txt);
+    asmDataDtor(&asmData);
 
     LOG_MESSAGE_F(INFO, "End assemblying file %s\n\n", filename);
 
     return err;
 }
-
-//------------------------------------------------------------------------------------------------------------------------
-
-FILE* makeFileOut(const char* filename, const char* format){-
-    LOG_ASSERT(filename != NULL);
-    LOG_ASSERT(format != NULL);
-
-    char* outFilename = (char*)calloc(sizeof(filename) + sizeof(format), sizeof(char));
-    strcat(outFilename, filename);
-
-    char* lastPt = strrchr(outFilename, '.');
-    if(lastPt != NULL)
-        *lastPt = '\0';
-
-    strcat(outFilename, format);
-    FILE* outFile = fopen(outFilename, "w");
-    free(outFilename);
-    return outFile;
-}                                                                      
 
 //------------------------------------------------------------------------------------------------------------------------
 
