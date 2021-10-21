@@ -23,7 +23,7 @@ CXXFLAGS += -DBUILD_VERSION=$(BUILD_VERSION)
 
 SOURCES_PRC = Proc.cpp
 SOURCES_ASM = Assembler.cpp
-SOURCES_DSM = 
+SOURCES_DSM = Dsm.cpp
 SOURCES_COM = utils.cpp
 
 EXECUTABLE  = main.cpp
