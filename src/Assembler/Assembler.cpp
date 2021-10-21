@@ -124,7 +124,7 @@ CompilationError assemblyLine(AsmData* asmData, char* line){
     }
     #undef COM_DEF
     lstWrite(asmData, "%04x %-15.15s ", asmData->ip.value, line);
-    LOG_MESSAGE_F(DEBUG, "Command %s: ARG:%d JMP%d\n", commandStr, command.flags.argMem, command.flags.isJump);
+    LOG_MESSAGE_F(DEBUG, "Command %s=%2X: ARG:%d JMP%d\n", commandStr,command.value, command.flags.argMem, command.flags.isJump);
     if(command.flags.isJump){
         // LOG_MESSAGE_F(DEBUG, "Label: %s \nLine %s\ncommSz: %d\n", line + commSz, line, commSz);
 
@@ -174,16 +174,16 @@ CompilationError assemblyLine(AsmData* asmData, char* line){
             asmData->code[asmData->ip.value] = command.value;
             asmData->ip.commandPtr++;
 
-            if(command.flags.argImm){
-                lstWrite(asmData, "%08X ", immArg);
-                asmData->code[asmData->ip.value] = immArg;
-                asmData->ip.argPtr++;
-            }
-
             if(command.flags.argReg){
                 regArg = regName[0] - 'a' + 1;
                 lstWrite(asmData, "%08X ", regArg);
                 asmData->code[asmData->ip.value] = regArg;
+                asmData->ip.argPtr++;
+            }
+
+            if(command.flags.argImm){
+                lstWrite(asmData, "%08X ", immArg);
+                asmData->code[asmData->ip.value] = immArg;
                 asmData->ip.argPtr++;
             }
         }

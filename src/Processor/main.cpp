@@ -8,6 +8,15 @@ int main(const int argc, char* argv[]){
         LOG_MESSAGE_F(ERROR, "No argumetns given. Nothing to execute\n");
     }
 
-    executeFile(argv[1]);
+    Processor proc = {};
+    if(processorLoad(&proc, argv[1])){
+        LOG_MESSAGE_F(ERROR, "Error loading processor\n");
+        return 0;
+    }
+    
+    RuntimeError err = processorExecute(&proc);
+
+    processorFree(&proc);
+
     return 0;
 }

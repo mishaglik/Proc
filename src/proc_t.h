@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include "../lib/version.h"
 
+#define NREGS 5 //0, a, b, c, d
+
 struct FileHeader{
     int signature  = 0;
     int mj_version = 0;
@@ -23,6 +25,8 @@ union proc_command_t
     unsigned char argMem:1;
     } flags;
 };
+
+const unsigned char NUM_MASK = 0b00011111;
 
 typedef int proc_arg_t;
 union proc_instruction_ptr_t

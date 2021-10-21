@@ -1,14 +1,20 @@
 
-#define PUSH(arg) stack_push(stack, arg)
+#define PUSH(arg)   stack_push(&proc->stack, arg)
 
-#define POP(arg)  stack_pop(stack, &arg)
+#define POP(argptr) stack_pop(&proc->stack, argptr)
 
-#define ARG       argument
+#define ARGPTR      argument
 
-#define TMP1      tmp1
+#define ARG         (*ARGPTR)
 
-#define TMP2      tmp2
+#define TMP1        tmp1
 
-#define OUT(arg)  printf(stack_element_format, arg)
+#define TMP2        tmp2
 
-#define HLT       goto finish
+#define OUT(arg)    printf("%d\n", arg)
+
+#define HLT         proc->status = ProcStatus::Halted
+
+#define IN(argptr)  scanf("%d", argptr)
+
+#define JMP(arg)    proc->ip.value = arg
