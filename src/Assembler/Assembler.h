@@ -6,6 +6,8 @@
 #include "../proc_t.h"
 #include "../utils.h"
 
+#define MAX_LABEL_LEN 32
+
 enum class CompilationError{
     noErr = 0,
     UnknownCommand,
@@ -16,7 +18,7 @@ enum class CompilationError{
 
 struct Label{
     proc_instruction_ptr_t ip;
-    char* name;
+    char name[MAX_LABEL_LEN];
 };
 
 struct AsmData{
@@ -95,7 +97,7 @@ CompilationError parseArgument(const AsmData* asmData, const proc_command_t comm
  * @param asmData 
  * @param name 
  */
-void registerLabel(AsmData* asmData, const char* name);
+void registerLabel(AsmData* asmData, const char* name, proc_instruction_ptr_t ip);
 
 /**
  * @brief Get the Label. If not found registers.
@@ -103,7 +105,7 @@ void registerLabel(AsmData* asmData, const char* name);
  * @param name 
  * @return proc_instruction_ptr_t 
  */
-proc_instruction_ptr_t getLabel(const char* name);
+proc_instruction_ptr_t getLabel(AsmData* asmData, const char* name);
 
 /**
  * @brief 
@@ -112,5 +114,5 @@ proc_instruction_ptr_t getLabel(const char* name);
  * @param format 
  * @param ... 
  */
-void lstWrite(FILE* lstFile, const char* format, ...);
+void lstWrite(AsmData* asmData, const char* format, ...);
 #endif

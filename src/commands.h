@@ -64,3 +64,30 @@ COM_DEF(out,    0b00000111, {
 COM_DEF(in ,    0b00001000, {
     PUSH(IN);
 })
+
+COM_DEF(jmp,    0b00010000, {
+    JMP(ARG);
+})
+
+#define COM_DEF_JMP(name, value, mark)  \
+    COM_DEF(name, value, {              \
+        POP(TMP1);                      \
+        POP(TMP2);                      \
+        if(TMP1 mark TMP2)              \
+            JMP(ARG);                   \
+    })                                  \
+
+COM_DEF_JMP(ja , 0b000100001, > )
+
+COM_DEF_JMP(jae, 0b000100010, >=)
+
+COM_DEF_JMP(jb , 0b000100011, < )
+
+COM_DEF_JMP(jbe, 0b000100100, <=)
+
+COM_DEF_JMP(jeq, 0b000100101, ==)
+
+COM_DEF_JMP(jne, 0b000100110, !=)
+
+#undef COM_DEF_JMP
+
