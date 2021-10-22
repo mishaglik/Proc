@@ -1,6 +1,9 @@
 #include "Assembler.h"
 #include <string.h>
-#include "stdarg.h"
+#include <ctype.h>
+#include <stdarg.h>
+
+#define LEXEM "[A-Za-z0-9:_]"
 
 const char* OUT_FORMAT = ".out";
 const char* LST_FORMAT = ".lst";
@@ -9,8 +12,9 @@ extern const int SIGNATURE;
 
 const size_t PROGRAM_MIN_SZ = 1024;
 const size_t EXPAND_COEF    = 2;
-const size_t TO_EXPAND      = 4*sizeof(int);
+const size_t TO_EXPAND      = 4 * sizeof(int);
 const size_t MAX_LABELS     = 1024;
+const size_t MAX_ARGS       = 2;
 
 const proc_instruction_ptr_t UNDEF_PT = {-1};
 
@@ -86,45 +90,113 @@ CompilationError assemblyLine(AsmData* asmData, char* line){
     CompilationError err = CompilationError::noErr;
 
 
-    //TODO: Do it better. Very crutchful; Comment ignoring
+    //TODO: Do it better.
     char* commentSym = strchr(line, ';');
     if(commentSym != NULL){
         *commentSym = '\0';
     }
-
-    char* commandStr = NULL;
+    char* lexem  = NULL;
+    char* curChr = line;
     size_t commSz = 0;
-    sscanf(line, "%m[A-Za-z]%n", &commandStr, &commSz);
-    
-    if(commandStr == NULL || commandStr == ""){
+    size_t nRead  = 0;
+    sscanf(curChr, "%m"LEXEM"%n", &lexem, &nRead);
+    curChr += nRead;
+    if(lexem == NULL || *lexem == '\0'){
         LOG_MESSAGE_F(INFO, "Skipped\n");
-        sscanf(line, "%*c%n", &commSz);
-        return commSz ? CompilationError::SyntaxError : CompilationError::noErr;
+        return isEndStr(line) ? CompilationError::noErr : CompilationError::SyntaxError;
     }
+//########################## Directives #######################################
+    
+    if(isLabel(lexem, NULL, asmData)){
+        LOG_MESSAGE_F(INFO, "Label: %s\n", lexem);
+        registerLabel(asmData, lexem, asmData->ip);
+        lstWrite(asmData, "%04x %s\n", asmData->ip.value, lexem);
+        return isEndStr(curChr) ? CompilationError::noErr : CompilationError::SyntaxError;
+    }
+
+//########################## Commands   #######################################
     proc_command_t command = {};
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #define COM_DEF(name, val, ...)                                 \
-    if(strcmp(#name, commandStr) == 0) {                        \
+    if(strcmp(#name, lexem) == 0) {                             \
         command.value = val;                                    \
     }else                                                       \
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     #include "../commands.h"
     /*else*/{
-        char nxtChr = 0;
-        sscanf(line + commSz, "%c", &nxtChr);
-        if(nxtChr == ':'){
-            registerLabel(asmData, commandStr, asmData->ip);
-            lstWrite(asmData, "%04x %-15.15s\n", asmData->ip.value, line);
-            return CompilationError::noErr;
-        }
-        else{
-            LOG_ERROR("Compilation error::Unknown command.");
-            return CompilationError::UnknownCommand;
-        }
+        LOG_MESSAGE_F(ERROR, "Error: Unknown command: %s\n");
+        return CompilationError::SyntaxError;
     }
     #undef COM_DEF
+
     lstWrite(asmData, "%04x %-15.15s ", asmData->ip.value, line);
-    LOG_MESSAGE_F(DEBUG, "Command %s=%2X: ARG:%d JMP%d\n", commandStr,command.value, command.flags.argMem, command.flags.isJump);
+    LOG_MESSAGE_F(INFO, "Command: %s\n", lexem);
+
+    free(lexem);
+// ####################### ARGUMENTS ##########################################
+    proc_arg_t args[MAX_ARGS] = {};
+    
+    int nArg = 0;
+
+    if(command.flags.argImm){             //Has argument
+        command.flags.argImm = 0;
+        command.flags.argReg = 0;
+        command.flags.argMem = 0;
+        
+        char* argStr1 = NULL;
+        char* argStr2 = NULL;
+
+
+        nArg = sscanf(curChr, " [ %m"LEXEM"%n + %m"LEXEM"]%n", &argStr1, &nRead, &argStr2, &nRead);
+
+        if(nArg == 0){
+            nArg = sscanf(curChr, " %m"LEXEM"%n + %m"LEXEM"%n", &argStr1, &nRead, &argStr2, &nRead);
+        }
+        else{
+            command.flags.argMem = 1;
+            if(nArg == 1){
+                if(*(curChr + nRead) != ']'){
+                    return CompilationError::SyntaxError;
+                }
+                else nRead++;
+            }
+        }
+        curChr += nRead;
+        LOG_DEBUG_F("%d %s %s\n", nArg, argStr1, argStr2);
+        if(nArg == 0){
+            return CompilationError::SyntaxError;
+        }
+
+        if(parseArgument(asmData, &command, argStr1, args) != CompilationError::noErr)
+            return CompilationError::SyntaxError;
+
+        if(nArg == 2){
+            int toSwap = command.flags.argImm;
+            if(parseArgument(asmData, &command, argStr2, args + 1) != CompilationError::noErr)
+                return CompilationError::SyntaxError;
+            if(toSwap){
+                swapInt(args, args + 1);
+            }
+        }
+        free(argStr1);
+        free(argStr2);
+    }
+
+    lstWrite(asmData, "%02X ", command.value);
+    asmData->code[asmData->ip.value] = command.value;
+    asmData->ip.commandPtr++;
+
+    memcpy(asmData->code + asmData->ip.value, args, sizeof(proc_arg_t) * nArg);
+    asmData->ip.argPtr += nArg;
+
+    lstWriteBytes(asmData, (char*)args, sizeof(proc_arg_t) * nArg);
+    if(!isEndStr(curChr)){
+        LOG_DEBUG_F("Ends with:%s\n", curChr);
+        return CompilationError::SyntaxError;
+    }
+    
+    /*
+
     if(command.flags.isJump){
         // LOG_MESSAGE_F(DEBUG, "Label: %s \nLine %s\ncommSz: %d\n", line + commSz, line, commSz);
 
@@ -194,9 +266,8 @@ CompilationError assemblyLine(AsmData* asmData, char* line){
         lstWrite(asmData, "%02X ", command.value);
         asmData->code[asmData->ip.value] = command.value;
         asmData->ip.commandPtr++;
-    }
+    }*/
     lstWrite(asmData, "\n");
-    free(commandStr);
     return err;
 }
 
@@ -213,6 +284,16 @@ void lstWrite(AsmData* asmData, const char* format, ...){
     va_start(args, format);
     vfprintf(asmData->lstFile, format, args);
     va_end(args);
+}
+
+//---------------------------------------------------------------------------------
+
+void lstWriteBytes(AsmData* asmData, const char* data, const size_t n){
+    LOG_ASSERT(asmData != NULL);
+    LOG_ASSERT(data != NULL);
+
+    for(size_t i = 0; i < n; ++i)
+        lstWrite(asmData, "%02X ", (unsigned char)data[i]);
 }
 
 //---------------------------------------------------------------------------------
@@ -316,4 +397,95 @@ proc_instruction_ptr_t getLabel(AsmData* asmData, const char* name){
     else{
         LOG_MESSAGE_F(ERROR, "No label defenitio\n");
     }
+    return UNDEF_PT;
+}
+
+//------------------------------------------------------------------------------
+
+int isLabel(char* s, proc_arg_t *value, AsmData* asmData){
+    if(s == NULL)
+        return 0;
+    
+    size_t len = strlen(s);
+    
+    if(!isalpha(*s) && s[0] != '_')
+        return 0;
+    
+    for(int i = 1; i < len - 1; ++i){
+        if(!isalnum(s[i]) && s[i] != '_')
+            return 0;
+    }
+
+    if(s[len - 1] != ':'){
+        return 0;
+    }
+
+    s[len - 1] = '\0';
+
+    if(value != NULL)
+        *value = getLabel(asmData, s).value;
+
+    return 1;
+}
+
+//------------------------------------------------------------------------------
+
+int isRegister(char* s, proc_arg_t* value){
+    LOG_ASSERT(value != NULL);
+    if(s == NULL)
+        return 0;
+    
+    size_t len = strlen(s);
+
+    if(len != 2)
+        return 0;
+    
+    if(s[1] != 'x')
+        return 0;
+    
+    if(s[0] < 'a' || s[0] >='a' + NREGS)
+        return 0;
+    
+    *value = s[0] - 'a' + 1;
+    return 1;
+}
+
+//------------------------------------------------------------------------------
+
+int isNumber(char* s, proc_arg_t* value){
+    LOG_ASSERT(value != NULL);
+    if(s == NULL)
+        return 0;
+
+    size_t len   = strlen(s);
+    size_t nRead = 0;
+
+    sscanf(s, "%d%n", value, &nRead);
+
+    return nRead == len;
+}
+
+//------------------------------------------------------------------------------
+
+CompilationError parseArgument(AsmData* asmData, proc_command_t* command, char* argStr, proc_arg_t* argVal){
+    LOG_ASSERT(asmData != NULL);
+    LOG_ASSERT(command != NULL);
+    LOG_ASSERT(argStr  != NULL);
+    LOG_ASSERT(argVal  != NULL);
+
+    if(!command->flags.argImm && isNumber(argStr, argVal)){
+        command->flags.argImm = 1;
+        return CompilationError::noErr;
+    }
+
+    if(!command->flags.argReg && isRegister(argStr, argVal)){
+        command->flags.argReg = 1;
+        return CompilationError::noErr;
+    }
+
+    if(!command->flags.argImm && isLabel(argStr, argVal, asmData)){
+        command->flags.argImm = 1;
+        return CompilationError::noErr;
+    }
+    return CompilationError::SyntaxError;
 }

@@ -89,7 +89,7 @@ CompilationError assemblyLine(AsmData* asmData, char* line);
  * @param command 
  * @return CompilationError 
  */
-CompilationError parseArgument(const AsmData* asmData, const proc_command_t command);
+CompilationError parseArgument(AsmData* asmData, proc_command_t* command, char* argStr, proc_arg_t* argVal);
 
 /**
  * @brief Registers label with name;
@@ -115,4 +115,36 @@ proc_instruction_ptr_t getLabel(AsmData* asmData, const char* name);
  * @param ... 
  */
 void lstWrite(AsmData* asmData, const char* format, ...);
+/**
+ * @brief 
+ * 
+ * @param asmData 
+ * @param data 
+ * @param n 
+ */
+void lstWriteBytes(AsmData* asmData, const char* data, const size_t n);
+/**
+ * @brief 
+ * 
+ * @param s 
+ * @param value 
+ * @return int 
+ */
+int isLabel(char* s, proc_arg_t *value, AsmData* asmData);
+/**
+ * @brief 
+ * 
+ * @param s 
+ * @param value 
+ * @return int 
+ */
+int isNumber(const char* s, proc_arg_t* value);
+/**
+ * @brief 
+ * 
+ * @param s 
+ * @param value 
+ * @return int 
+ */
+int isRegister(const char* s, proc_arg_t* value);
 #endif

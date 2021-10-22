@@ -25,3 +25,13 @@ FILE* createOutFile(const char* filename, const char* outputFileExt){
 proc_command_t numToCom(char num){
     return *(proc_command_t*)&num;
 }
+
+int isEndStr(const char* s){
+    return sscanf(s, "%*s") == EOF;
+}
+
+void swapInt(int* p1, int* p2){
+    int tmp = *p1;
+    *p1 = *p2;
+    *p2 = tmp;
+}

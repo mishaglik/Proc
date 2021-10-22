@@ -18,8 +18,7 @@ union proc_command_t
 {   
     unsigned char value;
     struct{
-    unsigned char id    :4;
-    unsigned char isJump:1;
+    unsigned char id    :5;
     unsigned char argImm:1;
     unsigned char argReg:1;
     unsigned char argMem:1;
