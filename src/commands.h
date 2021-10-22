@@ -90,5 +90,15 @@ COM_DEF_JMP(jeq, 0b00110101, ==)
 
 COM_DEF_JMP(jne, 0b00110110, !=)
 
+COM_DEF(call, 0b00111000, {
+    PUSH(IP);
+    JMP(ARG);
+})
+
+COM_DEF(ret, 0b00011001, {
+    POP(&TMP1);
+    JMP(TMP1);
+})
+
 #undef COM_DEF_JMP
 

@@ -13,6 +13,8 @@
 
 #define OUT(arg)    printf("%d\n", arg)
 
+#define IP          proc->ip.value
+
 #define HLT         proc->status = ProcStatus::Halted
 
 #define IN(argptr)  scanf("%d", argptr)

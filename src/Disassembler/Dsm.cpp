@@ -50,11 +50,11 @@ void disassemblyFile(const char* filename){
             break;
         }
         fprintf(outFile, " ");
-        if(command.flags.isJump){
-            fprintf(outFile, "label_%d\n", code[ip.value]);
-            ip.argPtr++;
-            continue;
-        }
+        // if(command.flags.isJump){
+            // fprintf(outFile, "label_%d\n", code[ip.value]);
+            // ip.argPtr++;
+            // continue;
+        // }
         if(command.flags.argMem)
             fprintf(outFile, "[");
         if(command.flags.argReg){
