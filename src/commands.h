@@ -19,12 +19,12 @@
  * 0x07 - out
  * 0x08 - in
  * 0x09 - outc
- * 0x0A - 
- * 0x0B - 
- * 0x0C -
+ * 0x0A - outf
+ * 0x0B - shl
+ * 0x0C - shr
  * 0x0D - sleep
  * 0x0E - pause
- * 0x0F - 
+ * 0x0F - sqrt
  * 0x10 - jmp
  * 0x11 - ja
  * 0x12 - jae
@@ -71,7 +71,7 @@ COM_DEF(add,    0b00000011, {
 COM_DEF(sub,    0b00000100, {
     POP(&TMP1);
     POP(&TMP2);
-    PUSH(TMP1 - TMP2);
+    PUSH(TMP2 - TMP1);
 })
 
 COM_DEF(mul,    0b00000101, {
@@ -85,9 +85,9 @@ COM_DEF(div,    0b00000110, {
     POP(&TMP2);
     if(!TMP2){
         LOG_MESSAGE_F(ERROR, "Zero Division error");
-        HLT;
+        ERR;
     }
-    PUSH(TMP1 / TMP2);
+    PUSH(TMP2 / TMP1);
 })
 
 COM_DEF(out,    0b00000111, {
@@ -105,13 +105,42 @@ COM_DEF(outc,   0b00001001, {
     OUTC(TMP1);
 })
 
-COM_DEF(pau,  0b00001101, {
+COM_DEF(outf,   0b00001010, {
+    POP(&TMP1);
+    POP(&TMP2);
+    if(TMP2 == 0){
+        LOG_MESSAGE_F(ERROR, "Zero Division error");
+        ERR;
+    }
+    OUTF(TMP2, TMP1);
+})
+
+COM_DEF(shl,    0b00001011, {
+    POP(&TMP1);
+    POP(&TMP2);
+    PUSH(TMP2 << TMP1);
+})
+
+COM_DEF(shr,    0b00001100, {
+    POP(&TMP1);
+    POP(&TMP2);
+    PUSH(TMP2 >> TMP1);
+})
+
+COM_DEF(pau,    0b00001101, {
     PAUSE;
 })
 
-COM_DEF(slp,  0b00001110, {
+COM_DEF(slp,    0b00001110, {
     POP(&TMP1)
     SLEEP(TMP1);
+})
+
+COM_DEF(srt,   0b00001111, {
+    POP(&TMP1);
+    if(TMP1 < 0)
+        ERR;
+    PUSH(round(sqrt(TMP1)));
 })
 
 COM_DEF(jmp,    0b00110000, {
@@ -122,7 +151,7 @@ COM_DEF(jmp,    0b00110000, {
     COM_DEF(name, value, {              \
         POP(&TMP1);                     \
         POP(&TMP2);                     \
-        if(TMP1 mark TMP2){             \
+        if(TMP2 mark TMP1){             \
             JMP(ARG);}                  \
     })                                  \
 
@@ -134,7 +163,7 @@ COM_DEF_JMP(jb , 0b00110011, < )
 
 COM_DEF_JMP(jbe, 0b00110100, <=)
 
-COM_DEF_JMP(jeq, 0b00110101, ==)
+COM_DEF_JMP(je, 0b00110101, ==)
 
 COM_DEF_JMP(jne, 0b00110110, !=)
 

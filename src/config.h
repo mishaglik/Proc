@@ -7,6 +7,9 @@
 #define DISPLAY_WIDHT  100u
 #define DISPLAY_HEIGHT 100u
 
+#define VIDEO
+// #define STEP_MODE
 
+// #define HOLLOW_RECT
 
 #endif

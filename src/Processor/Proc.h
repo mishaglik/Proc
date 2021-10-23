@@ -7,8 +7,11 @@
 #include "../../lib/File.h"
 #include "../proc_t.h"
 #include "../config.h"
-#include "VideoDriver.h"
+#include "../utils.h"
 
+#ifdef VIDEO
+#include "VideoDriver.h"
+#endif
 
 enum class RuntimeError{
     noErr,
@@ -34,10 +37,14 @@ struct RAM{
 struct Processor{
     Stack stack = {};
     char* code  = NULL;
+    size_t code_sz = 0;
     proc_arg_t reg[NREGS] = {};
-    RAM ram = {}; 
+    RAM ram = {};
+
+#ifdef VIDEO
     VideoDriver videoDriver = {};
-    
+#endif
+
     ProcStatus status = ProcStatus::OFF;
     proc_instruction_ptr_t ip = {0};
 };
@@ -79,5 +86,9 @@ void processorFree(Processor* proc);
 RuntimeError getArg(Processor* proc, proc_arg_t** arg, proc_command_t command, proc_arg_t* immArg);
 
 void procDump(Processor* proc);
+
+void dumpBytes(char* data, size_t n, size_t toColor = 0);
+
+void dumpStack(Stack* stack);
 
 #endif

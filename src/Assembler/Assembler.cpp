@@ -3,7 +3,7 @@
 #include <ctype.h>
 #include <stdarg.h>
 
-#define LEXEM "[A-Za-z0-9:_]"
+#define LEXEM "[A-Za-z0-9:_-]"
 
 const char* OUT_FORMAT = ".out";
 const char* LST_FORMAT = ".lst";
@@ -57,7 +57,7 @@ CompilationError assemblyFile(const char* filename){
 
             err = assemblyLine(&asmData, programm_txt.strings[line].pBegin);
             if(err != CompilationError::noErr){
-                LOG_MESSAGE_F(ERROR, "Compilation error on line: %d", line);
+                LOG_MESSAGE_F(ERROR, "Compilation error on line: %d\n", line);
                 break;
             }
             if(isToExpand(&asmData))
@@ -101,10 +101,10 @@ CompilationError assemblyLine(AsmData* asmData, char* line){
     char* curChr = line;
     int   nRead  = 0;
 
-    sscanf(curChr, "%m"LEXEM"%n", &lexem, &nRead);
+    sscanf(curChr, " %m"LEXEM"%n", &lexem, &nRead);
     curChr += nRead;
     if(lexem == NULL || *lexem == '\0'){
-        LOG_MESSAGE_F(INFO, "Skipped\n");
+        LOG_MESSAGE_F(INFO, "Skipped: %s\n", line);
         return isEndStr(line) ? CompilationError::noErr : CompilationError::SyntaxError;
     }
 //########################## Directives #######################################
@@ -127,7 +127,7 @@ CompilationError assemblyLine(AsmData* asmData, char* line){
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     #include "../commands.h"
     /*else*/{
-        LOG_MESSAGE_F(ERROR, "Error: Unknown command: %s\n");
+        LOG_MESSAGE_F(ERROR, "Error: Unknown command: %s\n", lexem);
         return CompilationError::SyntaxError;
     }
     #undef COM_DEF

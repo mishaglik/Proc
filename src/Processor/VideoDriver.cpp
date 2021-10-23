@@ -52,8 +52,11 @@ void draw(VideoDriver* video){
 
             rect.x = PIXEL_SZ * x;
             rect.y = PIXEL_SZ * y;
-
+        #ifdef HOLLOW_RECT
             SDL_RenderDrawRect(video->renderer, &rect);
+        #else
+            SDL_RenderFillRect(video->renderer, &rect);
+        #endif
         }
     }
 

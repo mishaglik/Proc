@@ -35,3 +35,17 @@ void swapInt(int* p1, int* p2){
     *p1 = *p2;
     *p2 = tmp;
 }
+
+const char* commandName(proc_command_t command){
+    // const char NUM_MASK = 0b00011111;
+    switch (command.value & NUM_MASK)
+    {
+    #define COM_DEF(name, num, ...)     \
+    case (num & NUM_MASK):              \
+        return #name;
+    #include "commands.h"
+    #undef COM_DEF
+    default:
+        return "";
+    }
+}
