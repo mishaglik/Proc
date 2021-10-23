@@ -11,7 +11,12 @@ struct FileHeader{
     int mn_verison = 0;
     int bd_version = 0;
 };
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmultichar"
 const int SIGNATURE = 'D&P';
+#pragma GCC diagnostic pop
+
 const FileHeader BIN_FILE_HEADER = {SIGNATURE, MAJOR_VERSION, MINOR_VERSION, BUILD_VERSION};
 
 union proc_command_t
@@ -30,7 +35,8 @@ const unsigned char NUM_MASK = 0b00011111;
 typedef int proc_arg_t;
 union proc_instruction_ptr_t
 {
-    proc_arg_t      value;
+    proc_arg_t      asArg;
+    size_t          value;
     proc_command_t* commandPtr;
     proc_arg_t*     argPtr;
 };

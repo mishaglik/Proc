@@ -52,11 +52,14 @@ CompilationError assemblyFile(const char* filename){
     for(; asmData.nWalk < ASM_WALKS && err == CompilationError::noErr; asmData.nWalk++){
         LOG_MESSAGE_F(INFO, "Walkthrough %d\n", asmData.nWalk);
         asmData.ip.value = 0;
-        for(size_t line = 0; line < programm_txt.nStrings && err == CompilationError::noErr; ++line){
+        for(size_t line = 0; line < programm_txt.nStrings; ++line){
             LOG_MESSAGE_F(INFO, "Line %d:\n", line);
 
             err = assemblyLine(&asmData, programm_txt.strings[line].pBegin);
-
+            if(err != CompilationError::noErr){
+                LOG_MESSAGE_F(ERROR, "Compilation error on line: %d", line);
+                break;
+            }
             if(isToExpand(&asmData))
                 expandData(&asmData);
         }
@@ -89,16 +92,15 @@ CompilationError assemblyLine(AsmData* asmData, char* line){
 
     CompilationError err = CompilationError::noErr;
 
-
-    //TODO: Do it better.
     char* commentSym = strchr(line, ';');
     if(commentSym != NULL){
         *commentSym = '\0';
     }
+
     char* lexem  = NULL;
     char* curChr = line;
-    size_t commSz = 0;
-    size_t nRead  = 0;
+    int   nRead  = 0;
+
     sscanf(curChr, "%m"LEXEM"%n", &lexem, &nRead);
     curChr += nRead;
     if(lexem == NULL || *lexem == '\0'){
@@ -111,6 +113,7 @@ CompilationError assemblyLine(AsmData* asmData, char* line){
         LOG_MESSAGE_F(INFO, "Label: %s\n", lexem);
         registerLabel(asmData, lexem, asmData->ip);
         lstWrite(asmData, "%04x %s\n", asmData->ip.value, lexem);
+        free(lexem);
         return isEndStr(curChr) ? CompilationError::noErr : CompilationError::SyntaxError;
     }
 
@@ -142,10 +145,9 @@ CompilationError assemblyLine(AsmData* asmData, char* line){
         command.flags.argImm = 0;
         command.flags.argReg = 0;
         command.flags.argMem = 0;
-        
+
         char* argStr1 = NULL;
         char* argStr2 = NULL;
-
 
         nArg = sscanf(curChr, " [ %m"LEXEM"%n + %m"LEXEM"]%n", &argStr1, &nRead, &argStr2, &nRead);
 
@@ -163,7 +165,7 @@ CompilationError assemblyLine(AsmData* asmData, char* line){
         }
         curChr += nRead;
         LOG_DEBUG_F("%d %s %s\n", nArg, argStr1, argStr2);
-        if(nArg == 0){
+        if(nArg <= 0){
             return CompilationError::SyntaxError;
         }
 
@@ -183,7 +185,7 @@ CompilationError assemblyLine(AsmData* asmData, char* line){
     }
 
     lstWrite(asmData, "%02X ", command.value);
-    asmData->code[asmData->ip.value] = command.value;
+    asmData->code[asmData->ip.value] = (char)command.value;
     asmData->ip.commandPtr++;
 
     memcpy(asmData->code + asmData->ip.value, args, sizeof(proc_arg_t) * nArg);
@@ -194,79 +196,6 @@ CompilationError assemblyLine(AsmData* asmData, char* line){
         LOG_DEBUG_F("Ends with:%s\n", curChr);
         return CompilationError::SyntaxError;
     }
-    
-    /*
-
-    if(command.flags.isJump){
-        // LOG_MESSAGE_F(DEBUG, "Label: %s \nLine %s\ncommSz: %d\n", line + commSz, line, commSz);
-
-        char* labelName = NULL;
-        sscanf(line + commSz, " %m[A-Za-z0-9_]:", &labelName);
-        if(labelName == NULL){
-            return CompilationError::SyntaxError;
-        }
-        proc_instruction_ptr_t toJmp = getLabel(asmData, labelName);
-
-        lstWrite(asmData, "%02X ", command.value);
-        lstWrite(asmData, "%08X ", toJmp);
-
-        asmData->code[asmData->ip.value] = command.value;
-        asmData->ip.commandPtr++;
-
-        asmData->code[asmData->ip.value] = toJmp.value;
-        asmData->ip.argPtr++;
-    } 
-    else if(command.flags.argMem){
-        char* argStr = NULL;
-        sscanf(line + commSz, " [ %m[abcdx0123456789+ ] ]", &argStr);
-
-        if(argStr == NULL){
-            command.flags.argMem = 0;
-            argStr = line + commSz;
-        }
-        proc_arg_t immArg = 0;
-        proc_arg_t regArg = 0;
-        char regName[2] = {};
-        size_t nRead = 0;
-
-        if(sscanf(argStr, "%1[abcd]x + %d", regName, &immArg) == 2 || sscanf(argStr, " %d + %1[abcd]x", &immArg, regName) == 2); 
-        else if(sscanf(argStr, "%d", &immArg)){
-            command.flags.argReg = 0;
-        }
-        else if(sscanf(argStr, " %1[abcd]x%n ", regName, &nRead)){
-            command.flags.argImm = 0;
-        }
-        else{
-            err = CompilationError::SyntaxError;
-        }
-        if(argStr != line + commSz)
-            free(argStr);  
-        if(err == CompilationError::noErr){
-            lstWrite(asmData, "%02X ", command.value);
-            asmData->code[asmData->ip.value] = command.value;
-            asmData->ip.commandPtr++;
-
-            if(command.flags.argReg){
-                regArg = regName[0] - 'a' + 1;
-                lstWrite(asmData, "%08X ", regArg);
-                asmData->code[asmData->ip.value] = regArg;
-                asmData->ip.argPtr++;
-            }
-
-            if(command.flags.argImm){
-                lstWrite(asmData, "%08X ", immArg);
-                asmData->code[asmData->ip.value] = immArg;
-                asmData->ip.argPtr++;
-            }
-        }
-            
-        
-    }
-    else{
-        lstWrite(asmData, "%02X ", command.value);
-        asmData->code[asmData->ip.value] = command.value;
-        asmData->ip.commandPtr++;
-    }*/
     lstWrite(asmData, "\n");
     return err;
 }
@@ -358,14 +287,15 @@ void registerLabel(AsmData* asmData, const char* name, proc_instruction_ptr_t ip
 
     LOG_MESSAGE_F(DEBUG, "Registring label: %s\n", name);
 
-    for(int i = 0; i < asmData->nLabels; ++i){
+    for(size_t i = 0; i < asmData->nLabels; ++i){
         if(strcmp(name, asmData->labels[i].name) == 0){
             if(asmData->labels[i].ip.value == UNDEF_PT.value){
                 asmData->labels[i].ip.value = ip.value;
                 LOG_DEBUG_F("%X\n", asmData->labels[i].ip.value);
             }
-            else 
+            else{
                 LOG_MESSAGE_F(WARNING, "Redefining label: %s\n", name);
+            }
             return;
         }
     }
@@ -385,7 +315,7 @@ proc_instruction_ptr_t getLabel(AsmData* asmData, const char* name){
     LOG_ASSERT(name != NULL);
     LOG_ASSERT(asmData != NULL);
     LOG_MESSAGE_F(DEBUG, "Finding label from %d: %s\n", asmData->nLabels ,name);
-    for(int i = 0; i < asmData->nLabels; ++i){
+    for(size_t i = 0; i < asmData->nLabels; ++i){
         LOG_DEBUG_F("%d: %s %s %X\n",i, name, asmData->labels[i].name, asmData->labels[i].ip.value);
         if(strcmp(name, asmData->labels[i].name) == 0){
             return asmData->labels[i].ip;
@@ -411,7 +341,7 @@ int isLabel(char* s, proc_arg_t *value, AsmData* asmData){
     if(!isalpha(*s) && s[0] != '_')
         return 0;
     
-    for(int i = 1; i < len - 1; ++i){
+    for(size_t i = 1; i < len - 1; ++i){
         if(!isalnum(s[i]) && s[i] != '_')
             return 0;
     }
@@ -423,14 +353,14 @@ int isLabel(char* s, proc_arg_t *value, AsmData* asmData){
     s[len - 1] = '\0';
 
     if(value != NULL)
-        *value = getLabel(asmData, s).value;
+        *value = getLabel(asmData, s).asArg;
 
     return 1;
 }
 
 //------------------------------------------------------------------------------
 
-int isRegister(char* s, proc_arg_t* value){
+int isRegister(const char* s, proc_arg_t* value){
     LOG_ASSERT(value != NULL);
     if(s == NULL)
         return 0;
@@ -452,7 +382,7 @@ int isRegister(char* s, proc_arg_t* value){
 
 //------------------------------------------------------------------------------
 
-int isNumber(char* s, proc_arg_t* value){
+int isNumber(const char* s, proc_arg_t* value){
     LOG_ASSERT(value != NULL);
     if(s == NULL)
         return 0;
@@ -460,7 +390,10 @@ int isNumber(char* s, proc_arg_t* value){
     size_t len   = strlen(s);
     size_t nRead = 0;
 
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wformat="
     sscanf(s, "%d%n", value, &nRead);
+    #pragma GCC diagnostic pop
 
     return nRead == len;
 }
