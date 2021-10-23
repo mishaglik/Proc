@@ -122,7 +122,7 @@ CompilationError assemblyLine(AsmData* asmData, char* line){
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #define COM_DEF(name, val, ...)                                 \
     if(strcmp(#name, lexem) == 0) {                             \
-        command.value = val;                                    \
+        command.value = (char)val;                              \
     }else                                                       \
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     #include "../commands.h"
@@ -184,8 +184,8 @@ CompilationError assemblyLine(AsmData* asmData, char* line){
         free(argStr2);
     }
 
-    lstWrite(asmData, "%02X ", command.value);
-    asmData->code[asmData->ip.value] = (char)command.value;
+    lstWrite(asmData, "%02X ", (unsigned char)command.value);
+    asmData->code[asmData->ip.value] = command.value;
     asmData->ip.commandPtr++;
 
     memcpy(asmData->code + asmData->ip.value, args, sizeof(proc_arg_t) * nArg);

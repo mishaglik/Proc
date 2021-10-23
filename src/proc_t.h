@@ -21,7 +21,7 @@ const FileHeader BIN_FILE_HEADER = {SIGNATURE, MAJOR_VERSION, MINOR_VERSION, BUI
 
 union proc_command_t
 {   
-    unsigned char value;
+    char value;
     struct{
     unsigned char id    :5;
     unsigned char argImm:1;

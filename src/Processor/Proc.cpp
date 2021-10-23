@@ -40,7 +40,7 @@ RuntimeError processorExecute(Processor* proc){
 
     proc->status = ProcStatus::Running;
     
-    proc_command_t command = {-1};
+    proc_command_t command = {'\xFF'};
 
  
 

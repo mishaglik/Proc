@@ -13,10 +13,10 @@
 
 #define OUT(arg)    printf("%d\n", arg)
 
-#define IP          proc->ip.value
+#define IP          proc->ip.asArg
 
 #define HLT         proc->status = ProcStatus::Halted
 
 #define IN(argptr)  scanf("%d", argptr)
 
-#define JMP(arg)    proc->ip.value = arg
+#define JMP(arg)    proc->ip.asArg = arg

@@ -8,7 +8,7 @@
  * ARG
  * PUSH()
  * POP()
- * 
+ * command 0xFF causes error
  */
 
 

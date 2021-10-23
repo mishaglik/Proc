@@ -15,6 +15,7 @@ int main(const int argc, char* argv[]){
     }
     
     RuntimeError err = processorExecute(&proc);
+    LOG_MESSAGE_F(INFO, "Programm finished with code: %d\n", err);
 
     processorFree(&proc);
 
