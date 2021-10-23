@@ -6,14 +6,15 @@ PRC_DIR = Processor/
 ASM_DIR = Assembler/
 DSM_DIR = Disassembler/
 
-LIBRARIES = Logger Stack File
+SDL_LIB	  = SDL2 SDL2main
+LIBRARIES = Logger Stack File $(SDL_LIB)
 
 CXXFLAGS = `cat $(LIB_DIR)Cflags`
 SANFLAGS = `cat $(LIB_DIR)SanitizeFlags`
 LXXFLAGS = -L$(LIB_DIR) $(addprefix -l, $(LIBRARIES))
 
-MAJOR_VERSION = 4
-MINOR_VERSION = 1
+MAJOR_VERSION = 5
+MINOR_VERSION = 2
 BUILD_VERSION = `cat bld_version`
 # TODO: Auto increment version
 
@@ -23,7 +24,7 @@ CXXFLAGS += -DBUILD_VERSION=$(BUILD_VERSION)
 
 # CXXFLAGS += $(SANFLAGS)
 
-SOURCES_PRC = Proc.cpp
+SOURCES_PRC = Proc.cpp VideoDriver.cpp
 SOURCES_ASM = Assembler.cpp
 SOURCES_DSM = Dsm.cpp
 SOURCES_COM = utils.cpp

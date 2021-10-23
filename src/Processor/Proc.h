@@ -6,13 +6,15 @@
 #include "../../lib/version.h"
 #include "../../lib/File.h"
 #include "../proc_t.h"
+#include "../config.h"
+#include "VideoDriver.h"
 
-#define RAM_SZ 1024
 
 enum class RuntimeError{
     noErr,
     MemoryAccessErr,
     UnknownCommand,
+    EmptyStack,
 
 };
 
@@ -28,17 +30,19 @@ struct RAM{
     proc_arg_t data[RAM_SZ];
 };
 
-RuntimeError RAM_getPtr(RAM* ram, proc_arg_t address, proc_arg_t** arg);
 
 struct Processor{
     Stack stack = {};
     char* code  = NULL;
     proc_arg_t reg[NREGS] = {};
     RAM ram = {}; 
+    VideoDriver videoDriver = {};
     
     ProcStatus status = ProcStatus::OFF;
     proc_instruction_ptr_t ip = {0};
 };
+
+RuntimeError RAM_getPtr(Processor* proc, proc_arg_t address, proc_arg_t** arg);
 
 /**
  * @brief 
@@ -63,7 +67,17 @@ RuntimeError processorExecute(Processor* proc);
  */
 void processorFree(Processor* proc);
 
-
+/**
+ * @brief Get the Arg object
+ * 
+ * @param proc 
+ * @param arg 
+ * @param command 
+ * @param immArg 
+ * @return RuntimeError 
+ */
 RuntimeError getArg(Processor* proc, proc_arg_t** arg, proc_command_t command, proc_arg_t* immArg);
+
+void procDump(Processor* proc);
 
 #endif

@@ -8,7 +8,41 @@
  * ARG
  * PUSH()
  * POP()
- * command 0xFF causes error
+ * Command list (with mask 0b00011111):
+ * 0x00 - htl
+ * 0x01 - push
+ * 0x02 - pop
+ * 0x03 - add
+ * 0x04 - sub
+ * 0x05 - mul
+ * 0x06 - div
+ * 0x07 - out
+ * 0x08 - in
+ * 0x09 - outc
+ * 0x0A - 
+ * 0x0B - 
+ * 0x0C -
+ * 0x0D - sleep
+ * 0x0E - pause
+ * 0x0F - 
+ * 0x10 - jmp
+ * 0x11 - ja
+ * 0x12 - jae
+ * 0x13 - jb
+ * 0x14 - jbe
+ * 0x15 - jeq
+ * 0x16 - jne
+ * 0x17 - 
+ * 0x18 - call
+ * 0x19 - ret
+ * 0x1A - 
+ * 0x1B - 
+ * 0x1C - 
+ * 0x1D -
+ * 0x1E - 
+ * 0x1F - ERROR
+ 
+ * 
  */
 
 
@@ -64,6 +98,20 @@ COM_DEF(out,    0b00000111, {
 COM_DEF(in ,    0b00001000, {
     IN(&TMP1);
     PUSH(TMP1);
+})
+
+COM_DEF(outc,   0b00001001, {
+    POP(&TMP1);
+    OUTC(TMP1);
+})
+
+COM_DEF(pau,  0b00001101, {
+    PAUSE;
+})
+
+COM_DEF(slp,  0b00001110, {
+    POP(&TMP1)
+    SLEEP(TMP1);
 })
 
 COM_DEF(jmp,    0b00110000, {

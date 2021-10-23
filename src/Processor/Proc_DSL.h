@@ -1,7 +1,12 @@
 
 #define PUSH(arg)   stack_push(&proc->stack, arg)
 
-#define POP(argptr) stack_pop(&proc->stack, argptr)
+#define POP(argptr) {                           \
+    if(proc->stack.size == 0){                  \
+        return RuntimeError::EmptyStack;        \
+        }                                       \
+    stack_pop(&proc->stack, argptr);            \
+    }while(0)                                   \
 
 #define ARGPTR      argument
 
@@ -20,3 +25,9 @@
 #define IN(argptr)  scanf("%d", argptr)
 
 #define JMP(arg)    proc->ip.asArg = arg
+
+#define OUTC(arg)   printf("%c", arg);
+
+#define PAUSE       getchar();
+
+#define SLEEP(arg)  sleep(arg);

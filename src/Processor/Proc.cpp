@@ -1,5 +1,5 @@
 #include "Proc.h"
-
+#include <unistd.h>
 
 int processorLoad(Processor* proc, const char* filename){
     LOG_ASSERT(proc != NULL);
@@ -28,6 +28,8 @@ int processorLoad(Processor* proc, const char* filename){
 
     LOG_ASSERT(!stack_init(&(proc->stack)));
     
+    LOG_ASSERT(!initVideo(&(proc->videoDriver)));
+
     proc->status = ProcStatus::Idle;
     
     return 0;
@@ -70,6 +72,7 @@ RuntimeError processorExecute(Processor* proc){
             return RuntimeError::UnknownCommand;
             break;
         }
+        draw(&(proc->videoDriver));
     }
     return RuntimeError::noErr;
 }
@@ -96,28 +99,35 @@ RuntimeError getArg(Processor* proc, proc_arg_t** arg, proc_command_t command, p
         if(!*arg){
             return RuntimeError::MemoryAccessErr;
         }
-        RuntimeError err = RAM_getPtr(&proc->ram, **arg, arg);
+        RuntimeError err = RAM_getPtr(proc, **arg, arg);
         if(err != RuntimeError::noErr)
             return err;
     }
     return RuntimeError::noErr;
 }
 
-RuntimeError RAM_getPtr(RAM* ram, proc_arg_t address, proc_arg_t** arg){
-    LOG_ASSERT(ram != NULL);
+RuntimeError RAM_getPtr(Processor* proc, proc_arg_t address, proc_arg_t** arg){
+    LOG_ASSERT(proc != NULL);
     LOG_ASSERT(arg != NULL);
 
-    if(address > RAM_SZ || address <= 0)
+    if(address <= 0)
         return RuntimeError::MemoryAccessErr;
 
-    *arg = ram->data + address;
-    // sleep
-    return RuntimeError::noErr;
+    if(address < RAM_SZ){
+        *arg = proc->ram.data + address;
+        return RuntimeError::noErr;
+    }
+    address-=RAM_SZ;
+    if(address < DISPLAY_WIDHT * DISPLAY_HEIGHT){
+        *arg = getVideoMemPtr(&(proc->videoDriver), address);
+        return RuntimeError::noErr;
+    }
+    return RuntimeError::MemoryAccessErr;
 }
 
 void processorFree(Processor* proc){
     stack_free(&proc->stack);
     proc->status = ProcStatus::OFF;
-
+    finishVideo(&(proc->videoDriver));
     free(proc->code);
 }
