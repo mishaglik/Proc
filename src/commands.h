@@ -39,7 +39,7 @@
  * 0x1B - 
  * 0x1C - 
  * 0x1D -
- * 0x1E - 
+ * 0x1E - draw
  * 0x1F - ERROR
  
  * 
@@ -167,6 +167,8 @@ COM_DEF_JMP(je, 0b00110101, ==)
 
 COM_DEF_JMP(jne, 0b00110110, !=)
 
+#undef COM_DEF_JMP
+
 COM_DEF(call, 0b00111000, {
     PUSH(IP);
     JMP(ARG);
@@ -177,5 +179,10 @@ COM_DEF(ret, 0b00011001, {
     JMP(TMP1);
 })
 
-#undef COM_DEF_JMP
-
+COM_DEF(draw, 0b00011110, {
+    #ifdef VIDEO
+    DRAW;
+    #else
+    ERR;
+    #endif
+})

@@ -67,11 +67,13 @@ RuntimeError processorExecute(Processor* proc){
         #endif
         switch (command.value & NUM_MASK)
         {
-        #define COM_DEF(name, num, code, ...)                \
-            case (num & NUM_MASK):                           \
-                getArg(proc, &argument, command, &immArg);   \
-                {code}                                       \
-                break;                                       \
+        #define COM_DEF(name, num, code, ...)                                           \
+            case (num & NUM_MASK):                                                      \
+                if(getArg(proc, &argument, command, &immArg) != RuntimeError::noErr){   \
+                    return RuntimeError::MemoryAccessErr;                               \
+                }                                                                       \
+                {code}                                                                  \
+                break;                                                                  \
 
         #include "../commands.h"
 
@@ -82,9 +84,6 @@ RuntimeError processorExecute(Processor* proc){
             return RuntimeError::UnknownCommand;
             break;
         }
-    #ifdef VIDEO
-        draw(&(proc->videoDriver));
-    #endif
     cntWhile++;
     }
     return RuntimeError::noErr;
@@ -113,6 +112,7 @@ RuntimeError getArg(Processor* proc, proc_arg_t** arg, proc_command_t command, p
             return RuntimeError::MemoryAccessErr;
         }
         RuntimeError err = RAM_getPtr(proc, **arg, arg);
+
         if(err != RuntimeError::noErr)
             return err;
     }
@@ -161,6 +161,8 @@ void procDump(Processor* proc){
     LOG_DEBUG_F("#############################################\n");
     LOG_DEBUG_F("# %8d # %8d # %8d # %8d #\n", proc->reg[1], proc->reg[2], proc->reg[3], proc->reg[4]);
     LOG_DEBUG_F("#############################################\n");
+    LOG_DEBUG_F("Proc mem dump\n");
+    dumpMem(proc->ram.data, 20);
     LOG_DEBUG_F("Proc stack dump:\n");
     dumpStack(&proc->stack);
 }
@@ -199,4 +201,29 @@ void dumpStack(Stack* stack){
     }
     LOG_DEBUG_F("############\n");
 
+}
+
+void dumpMem(proc_arg_t* data, size_t n){
+    LOG_ASSERT(data != NULL);
+    LOG_DEBUG_F("#");
+    for(size_t i = 0; i < n; ++i){
+        LOG_MESSAGE_F(NO_CAP, "###\033[32m%03x\033[0m###", i);
+    }
+    LOG_MESSAGE_F(NO_CAP, "#\n");
+    LOG_MESSAGE_F(DEBUG, "#");
+    for(size_t i = 0; i < n; ++i){
+        // if(i == toColor){
+            // LOG_MESSAGE_F(NO_CAP, "\033[1;31m");
+        // }
+        LOG_MESSAGE_F(NO_CAP, "%08X ", data[i]);
+        // if(i == toColor){
+            // LOG_MESSAGE_F(NO_CAP, "\033[0m");
+        // }
+    }
+    LOG_MESSAGE_F(NO_CAP, "#\n");
+    LOG_DEBUG_F("#");
+    for(size_t i = 0; i < n; ++i){
+        LOG_MESSAGE_F(NO_CAP, "#########");
+    }
+    LOG_MESSAGE_F(NO_CAP, "#\n");
 }

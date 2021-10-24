@@ -9,6 +9,7 @@
 
 #define VIDEO
 // #define STEP_MODE
+#define DUMPING
 
 // #define HOLLOW_RECT
 

@@ -35,3 +35,5 @@
 #define OUTF(val, prec) printf("%.3f\n",((double)val)/prec)
 
 #define ERR             proc->status = ProcStatus::Error
+
+#define DRAW            draw(&proc->videoDriver)

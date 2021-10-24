@@ -91,4 +91,6 @@ void dumpBytes(char* data, size_t n, size_t toColor = 0);
 
 void dumpStack(Stack* stack);
 
+void dumpMem(proc_arg_t* data, size_t n);
+
 #endif
