@@ -33,8 +33,8 @@
  * 0x17 - 
  * 0x18 - call  - call function
  * 0x19 - ret   - return from function
- * 0x1A - 
- * 0x1B - 
+ * 0x1A - aip   - add ip 
+ * 0x1B - pushB - push 1 byte
  * 0x1C - 
  * 0x1D -
  * 0x1E - draw  - only if have VIDEO. displays from video mem
@@ -129,7 +129,7 @@ COM_DEF(sqrt,   0b00001111, {
     PUSH(round(sqrt(TMP1)));
 })
 
-COM_DEF(jmp,    0b00110000, {
+COM_DEF(jmp,    0b01110000, {
     JMP(ARG);
 })
 
@@ -141,17 +141,17 @@ COM_DEF(jmp,    0b00110000, {
             JMP(ARG);}                  \
     })                                  \
 
-COM_DEF_JMP(ja , 0b00110001, > )
+COM_DEF_JMP(ja , 0b01110001, > )
 
-COM_DEF_JMP(jae, 0b00110010, >=)
+COM_DEF_JMP(jae, 0b01110010, >=)
 
-COM_DEF_JMP(jb , 0b00110011, < )
+COM_DEF_JMP(jb , 0b01110011, < )
 
-COM_DEF_JMP(jbe, 0b00110100, <=)
+COM_DEF_JMP(jbe, 0b01110100, <=)
 
-COM_DEF_JMP(je, 0b00110101, ==)
+COM_DEF_JMP(je,  0b01110101, ==)
 
-COM_DEF_JMP(jne, 0b00110110, !=)
+COM_DEF_JMP(jne, 0b01110110, !=)
 
 #undef COM_DEF_JMP
 
@@ -162,7 +162,15 @@ COM_DEF(call, 0b00111000, {
 
 COM_DEF(ret, 0b00011001, {
     POP(&TMP1);
-    JMP(TMP1);
+    JMP_ABS(TMP1);
+})
+
+COM_DEF(aip,  0b11111010, {
+    PUSH(IP + ARG);
+})
+
+COM_DEF(pushB, 0b11111011, {
+    PUSH(ARG & 0xFF);
 })
 
 COM_DEF(draw, 0b00011110, {

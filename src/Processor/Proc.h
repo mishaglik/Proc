@@ -31,7 +31,7 @@ enum class ProcStatus{
 };
 
 struct RAM{
-    proc_arg_t* data;
+    char* data;
 };
 
 /**
@@ -48,7 +48,6 @@ struct Processor{
     char* code              = NULL;
     proc_arg_t reg[NREGS]   = {};
 
-    size_t code_sz = 0;
 
 #ifdef VIDEO
     VideoDriver videoDriver = {};

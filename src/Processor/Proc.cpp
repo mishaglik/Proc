@@ -7,7 +7,7 @@ int processorLoad(Processor* proc, const char* filename){
     LOG_ASSERT(proc != NULL);
     LOG_ASSERT(filename != NULL);
 
-    proc->ip.value = 0;
+    proc->ip.value = LAYOUT_BEGIN_PROG;
 
     FILE* inFile = fopen(filename, "rb");
     LOG_ASSERT(inFile != NULL);
@@ -22,18 +22,15 @@ int processorLoad(Processor* proc, const char* filename){
         return -1;
     }
 
-    proc->code = (char*) calloc(fileSz + 1, sizeof(char));
-    LOG_ASSERT(proc->code != NULL);
-    proc->code_sz = fileSz + 1;
-
-    fread(proc->code, sizeof(char), fileSz, inFile);
-    fclose(inFile);
-
     LOG_ASSERT(!RAM_init(&proc->ram));
     LOG_ASSERT(!stack_init(&(proc->stack)));
 #ifdef VIDEO
     LOG_ASSERT(!initVideo(&(proc->videoDriver)));
 #endif
+    proc->code    = proc->ram.data;
+
+    fread(proc->code + LAYOUT_BEGIN_PROG, sizeof(char), fileSz, inFile);
+    fclose(inFile);
     proc->status = ProcStatus::Idle;
     
     return 0;
@@ -93,6 +90,10 @@ RuntimeError processorExecute(Processor* proc){
             return RuntimeError::UnknownCommand;
             break;
         }
+        
+        if(proc->ip.value >= RAM_SZ){
+            proc->status = ProcStatus::Error;
+        }
 
         if(cntWhile++ > MAX_PROC_OPERATIONS)
             return RuntimeError::TooManyOperations;
@@ -143,14 +144,14 @@ RuntimeError RAM_getPtr(Processor* proc, proc_arg_t address, proc_arg_t** arg){
         return RuntimeError::MemoryAccessErr;
 
     if(address < RAM_SZ){
-        *arg = proc->ram.data + address;
+        *arg = (proc_arg_t*)(proc->ram.data + address);
         return RuntimeError::noErr;
     }
 
     address -= RAM_SZ;
 
 #ifdef VIDEO
-    if(address < DISPLAY_WIDHT * DISPLAY_HEIGHT){
+    if(address < DISPLAY_WIDHT * DISPLAY_HEIGHT * sizeof(int)){
         *arg = getVideoMemPtr(&(proc->videoDriver), address);
         return RuntimeError::noErr;
     }
@@ -165,7 +166,6 @@ void processorFree(Processor* proc){
     LOG_ASSERT(proc != NULL);
 
     stack_free(&proc->stack);
-    free(proc->code);
 
     free(proc->ram.data);
     
@@ -187,7 +187,7 @@ void procDump(Processor* proc){
     LOG_DEBUG_F("IP value: %04x\n", proc->ip);
 
     LOG_DEBUG_F("Proc code dump:\n");
-    dumpBytes(proc->code + MAX(0 , proc->ip.asArg - 25), MIN(50ul, proc->code_sz - MAX(0, proc->ip.asArg - 25)), proc->ip.value - MAX(0, proc->ip.asArg - 25));
+    dumpBytes(proc->code + MAX(0 , proc->ip.asArg - 25), MIN(50ul, RAM_SZ - MAX(0, proc->ip.asArg - 25)), proc->ip.value - MAX(0, proc->ip.asArg - 25));
     
     LOG_DEBUG_F("Proc reg dump\n");
     LOG_DEBUG_F("#############################################################\n");
@@ -195,7 +195,7 @@ void procDump(Processor* proc){
     LOG_DEBUG_F("#############################################################\n");
     
     LOG_DEBUG_F("Proc mem dump\n");
-    dumpMem(proc->ram.data, 20);
+    dumpMem((proc_arg_t*)proc->ram.data, 20);
 
     LOG_DEBUG_F("Proc stack dump:\n");
     dumpStack(&proc->stack);
@@ -275,6 +275,6 @@ void dumpMem(proc_arg_t* data, size_t n){
 //-------------------------------------------------------------------------------------------------
 
 int RAM_init(RAM* ram){
-    ram->data = (proc_arg_t*)calloc(RAM_SZ, sizeof(proc_arg_t));
+    ram->data = (char*)calloc(RAM_SZ, sizeof(proc_arg_t));
     return (ram->data == NULL);
 }

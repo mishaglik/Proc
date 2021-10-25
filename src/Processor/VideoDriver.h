@@ -25,7 +25,7 @@ union colorArg
 
 
 struct VideoDriver{
-    colorArg data[DISPLAY_HEIGHT * DISPLAY_WIDHT];
+    colorArg* data = NULL;
 
     SDL_Window*   window = NULL;
     SDL_Renderer* renderer = NULL;

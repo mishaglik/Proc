@@ -3,16 +3,17 @@
 #include <stdlib.h>
 //############# Work mode #######################
 
-#define VIDEO
+// #define VIDEO
 // #define STEP_MODE
 // #define DUMPING
+
 #define LISTENIG_FILE
 
 #define HOLLOW_RECT
 
 //############### Hardware ######################
 const size_t NREGS                  = 5; //0, a, b, c, d
-const size_t RAM_SZ                 = 1024;
+const size_t RAM_SZ                 = 8192;
 
 const size_t MAX_TOKEN_LEN          = 32;
 const size_t MAX_LABEL_LEN          = MAX_TOKEN_LEN;

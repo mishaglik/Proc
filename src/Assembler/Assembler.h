@@ -97,7 +97,7 @@ CompilationError assemblyLine(AsmData* asmData, char* line);
  * @param argVal 
  * @return CompilationError 
  */
-CompilationError parseArgument(AsmData* asmData, proc_command_t* command, char* argStr, proc_arg_t* argVal);
+CompilationError parseArgument(AsmData* asmData, proc_command_t* command, char* argStr, proc_arg_t* argVal, int nArgs);
 
 /**
  * @brief Registers label with name;

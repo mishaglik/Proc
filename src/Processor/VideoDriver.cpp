@@ -3,6 +3,8 @@
 int initVideo(VideoDriver* video){
     LOG_ASSERT(video != NULL);
 
+    video->data = (colorArg*)calloc(DISPLAY_HEIGHT * DISPLAY_WIDHT, sizeof(colorArg));
+
     if(SDL_Init(SDL_INIT_EVERYTHING) != 0){
         LOG_MESSAGE_F(FATAL, "SDL_Init() error: %s\n", SDL_GetError());
         return 1;
@@ -73,7 +75,7 @@ void draw(VideoDriver* video){
 
 proc_arg_t* getVideoMemPtr(VideoDriver* video, size_t index){
     LOG_ASSERT(video != NULL);
-    LOG_ASSERT(index < DISPLAY_HEIGHT * DISPLAY_WIDHT);
+    LOG_ASSERT(index < DISPLAY_HEIGHT * DISPLAY_WIDHT * sizeof(int));
 
-    return &(video->data[index].value);
+    return (proc_arg_t*)(((char*)video->data) + index);
 }

@@ -13,8 +13,8 @@ CXXFLAGS = `cat $(LIB_DIR)Cflags`
 SANFLAGS = `cat $(LIB_DIR)SanitizeFlags`
 LXXFLAGS = -L$(LIB_DIR) $(addprefix -l, $(LIBRARIES))
 
-MAJOR_VERSION = 6
-MINOR_VERSION = 4
+MAJOR_VERSION = 7
+MINOR_VERSION = 0
 BUILD_VERSION = `cat bld_version`
 # TODO: Auto increment version
 
@@ -57,7 +57,7 @@ asm: $(addprefix $(BIN_DIR), $(OBJ_ASM) $(OBJ_COM))
 dsm: $(addprefix $(BIN_DIR), $(OBJ_DSM) $(OBJ_COM))
 	g++ $(CXXFLAGS) $^ $(LXXFLAGS) -o $@
 
-$(BIN_DIR)%.o : $(SRC_DIR)%.cpp $(SRC_DIR)%.h $(addprefix $(SRC_DIR), $(HEADERS_COM)) 
+$(BIN_DIR)%.o : $(SRC_DIR)%.cpp $(addprefix $(SRC_DIR), $(HEADERS_COM)) 
 	g++ -c $(CXXFLAGS) $(LXXFLAGS) -o $@ $<
 
 .PHONY: clean

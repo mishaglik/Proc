@@ -4,7 +4,7 @@
 #include "Assembler.h"
 
 
-#define TOKEN "[A-Za-z0-9:_-]"
+#define TOKEN "32[A-Za-z0-9:_-]"
 
 const proc_instruction_ptr_t UNDEF_PT = {-1};
 
@@ -94,6 +94,8 @@ CompilationError assemblyLine(AsmData* asmData, char* line){
     sscanf(curChr, " %"TOKEN"%n", token, &nRead);
     curChr += nRead;
 
+    LOG_DEBUG_F("Token: \"%s\"\n", token);
+
     if(token[0] == '\0'){
         LOG_MESSAGE_F(INFO, "Skipped: %s\n", line);
         return isEndStr(line) ? CompilationError::noErr : CompilationError::SyntaxError;
@@ -106,6 +108,22 @@ CompilationError assemblyLine(AsmData* asmData, char* line){
         registerLabel(asmData, token, asmData->ip);
         lstWrite(asmData, "%04x %s\n", asmData->ip.value, token);
         
+        return isEndStr(curChr) ? CompilationError::noErr : CompilationError::SyntaxError;
+    }
+
+    if(strcmp(token, "db") == 0){
+        char* str = NULL;
+        if(sscanf(curChr, " \" %m[^\n\"] \"%n", &str, &nRead) != 1){
+            return CompilationError::SyntaxError;
+        }
+        LOG_DEBUG_F("String: \"%s\"\n", str);
+        curChr += nRead;
+        size_t len = strlen(str);
+
+        memcpy(asmData->code + asmData->ip.value, str, len + 1);
+        asmData->ip.value += len + 1;
+
+        free(str);
         return isEndStr(curChr) ? CompilationError::noErr : CompilationError::SyntaxError;
     }
 
@@ -309,7 +327,7 @@ proc_instruction_ptr_t getLabel(AsmData* asmData, const char* name){
 int isLabel(char* s, proc_arg_t *value, AsmData* asmData){
     LOG_ASSERT(asmData != NULL);
 
-    if(s == NULL)
+    if(s == NULL || *s == '\0')
         return 0;
     
     size_t len = strlen(s);
@@ -337,7 +355,7 @@ int isLabel(char* s, proc_arg_t *value, AsmData* asmData){
 //------------------------------------------------------------------------------
 
 int isRegister(const char* s, proc_arg_t* value){
-    if(s == NULL)
+    if(s == NULL || *s == '\0')
         return 0;
     
     size_t len = strlen(s);
@@ -359,7 +377,7 @@ int isRegister(const char* s, proc_arg_t* value){
 //------------------------------------------------------------------------------
 
 int isImmediate(const char* s, proc_arg_t* value){
-    if(s == NULL)
+    if(s == NULL || *s == '\0')
         return 0;
 
     size_t len   = strlen(s);
@@ -376,7 +394,7 @@ int isImmediate(const char* s, proc_arg_t* value){
 
 //------------------------------------------------------------------------------
 
-CompilationError parseArgument(AsmData* asmData, proc_command_t* command, char* argStr, proc_arg_t* argVal){
+CompilationError parseArgument(AsmData* asmData, proc_command_t* command, char* argStr, proc_arg_t* argVal, int nArgs){
     LOG_ASSERT(asmData != NULL);
     LOG_ASSERT(command != NULL);
     LOG_ASSERT(argStr  != NULL);
@@ -394,6 +412,7 @@ CompilationError parseArgument(AsmData* asmData, proc_command_t* command, char* 
 
     if(!command->flags.argImm && isLabel(argStr, argVal, asmData)){
         command->flags.argImm = 1;
+        *argVal -= asmData->ip.value + nArgs * sizeof(proc_arg_t) + sizeof(proc_command_t);
         return CompilationError::noErr;
     }
     return CompilationError::SyntaxError;
@@ -407,11 +426,13 @@ CompilationError assemblyArguments(AsmData* asmData, proc_arg_t args[MAX_ARGS], 
     LOG_ASSERT(nArg    != NULL);
     LOG_ASSERT(curChr  != NULL);
     LOG_ASSERT(*curChr != NULL);
+    LOG_ASSERT(command != NULL);
 
     CompilationError err = CompilationError::noErr;
-    char argStr[MAX_ARGS][MAX_TOKEN_LEN] = {}; 
+    char argStr[MAX_ARGS][MAX_TOKEN_LEN] = {};
+    memset(argStr, 0, MAX_ARGS*MAX_TOKEN_LEN*sizeof(char)); 
     int nRead = 0;
-    *nArg = sscanf(*curChr, " [ %"TOKEN"%n + %"TOKEN"]%n", argStr[1], &nRead, argStr[2], &nRead);
+    *nArg = sscanf(*curChr, " [ %"TOKEN"%n + %"TOKEN"]%n", argStr[0], &nRead, argStr[1], &nRead);
 
     if(*nArg > 0){
         command->flags.argMem = 1;
@@ -423,24 +444,28 @@ CompilationError assemblyArguments(AsmData* asmData, proc_arg_t args[MAX_ARGS], 
         }
     }
     else{
-        *nArg = sscanf(*curChr, " %"TOKEN"%n + %"TOKEN"%n", argStr[1], &nRead, argStr[2], &nRead);
+        *nArg = sscanf(*curChr, " %"TOKEN"%n + %"TOKEN"%n", argStr[0], &nRead, argStr[1], &nRead);
     }
 
     *curChr += nRead;
-    LOG_DEBUG_F("%d %s %s\n", nArg, argStr[1], argStr[2]);
+    LOG_DEBUG_F("%d \"%s\" \"%s\"\n", *nArg, argStr[0], argStr[1]);
 
     if(*nArg <= 0){
         return CompilationError::SyntaxError;
     }
 
-    err = parseArgument(asmData, command, argStr[1], args);
+    // LOG_DEBUG_F("ComVal: %02X \n", (unsigned char)command->value);
+    err = parseArgument(asmData, command, argStr[0], args, *nArg);
+    // LOG_DEBUG_F("ComVal: %02X \n", (unsigned char)command->value);
 
-    if(*nArg == 2 && err != CompilationError::noErr){
+    if(*nArg == 2 && err == CompilationError::noErr){
         int toSwap = command->flags.argImm;
-        err = parseArgument(asmData, command, argStr[2], args + 1);
+        err = parseArgument(asmData, command, argStr[1], args + 1, *nArg);
+        // LOG_DEBUG_F("ComVal: %02X \n", (unsigned char)command->value);
         if(toSwap){
             swapInt(args, args + 1);
         }
     }
+    LOG_DEBUG_F("Arg Err:%d\n", err);
     return err;
 }
