@@ -7,7 +7,6 @@
 
 #include <SDL2/SDL.h>
 
-const size_t PIXEL_SZ = 5;
 
 //################### Public ####################################
 

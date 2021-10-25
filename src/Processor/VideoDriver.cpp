@@ -24,6 +24,8 @@ int initVideo(VideoDriver* video){
 
 }
 
+//-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 void finishVideo(VideoDriver* video){
     LOG_ASSERT(video != NULL);
     
@@ -36,6 +38,8 @@ void finishVideo(VideoDriver* video){
     SDL_Quit();
 }
 
+//-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 void draw(VideoDriver* video){
     LOG_ASSERT(video != NULL);
 
@@ -45,23 +49,27 @@ void draw(VideoDriver* video){
     rect.h = PIXEL_SZ;
     rect.w = PIXEL_SZ;
 
-    for(size_t y = 0; y < DISPLAY_HEIGHT; ++y){
-        for(size_t x = 0; x < DISPLAY_WIDHT; ++x){
+    for(int y = 0; y < DISPLAY_HEIGHT; ++y){
+        for(int x = 0; x < DISPLAY_WIDHT; ++x){
             colorArg curCol = video->data[DISPLAY_WIDHT * y + x];
             SDL_SetRenderDrawColor(video->renderer, curCol.color.r, curCol.color.g, curCol.color.b, curCol.color.a);
 
             rect.x = PIXEL_SZ * x;
             rect.y = PIXEL_SZ * y;
+
         #ifdef HOLLOW_RECT
             SDL_RenderDrawRect(video->renderer, &rect);
         #else
             SDL_RenderFillRect(video->renderer, &rect);
         #endif
+
         }
     }
 
     SDL_RenderPresent(video->renderer);
 }
+
+//-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 proc_arg_t* getVideoMemPtr(VideoDriver* video, size_t index){
     LOG_ASSERT(video != NULL);

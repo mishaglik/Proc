@@ -29,6 +29,7 @@ int processorLoad(Processor* proc, const char* filename){
     fread(proc->code, sizeof(char), fileSz, inFile);
     fclose(inFile);
 
+    LOG_ASSERT(!RAM_init(&proc->ram));
     LOG_ASSERT(!stack_init(&(proc->stack)));
 #ifdef VIDEO
     LOG_ASSERT(!initVideo(&(proc->videoDriver)));
@@ -38,6 +39,7 @@ int processorLoad(Processor* proc, const char* filename){
     return 0;
 }
 
+//------------------------------------------------------------------------------
 
 RuntimeError processorExecute(Processor* proc){
     LOG_ASSERT(proc != NULL);
@@ -54,19 +56,24 @@ RuntimeError processorExecute(Processor* proc){
         #ifdef DUMPING
         procDump(proc);
         #endif
+
         command.value = proc->code[proc->ip.value];
         proc->ip.commandPtr++;
         proc_arg_t* argument = NULL;            
         proc_arg_t tmp1 = 0, tmp2 = 0;          
-        proc_arg_t immArg = 0;      
+        proc_arg_t immArg = 0;   
+
         #ifdef DUMPING
         LOG_DEBUG_F("Command %02X: %s\n", command.value, commandName(command));
         #endif
+        
         #ifdef STEP_MODE
             PAUSE;
         #endif
+        
         switch (command.value & NUM_MASK)
         {
+        //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++    
         #define COM_DEF(name, num, code, ...)                                           \
             case (num & NUM_MASK):                                                      \
                 if(getArg(proc, &argument, command, &immArg) != RuntimeError::noErr){   \
@@ -74,17 +81,21 @@ RuntimeError processorExecute(Processor* proc){
                 }                                                                       \
                 {code}                                                                  \
                 break;                                                                  \
+        //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
         #include "../commands.h"
 
         #undef COM_DEF
+        
         default:
             proc->status = ProcStatus::Error;
             LOG_MESSAGE_F(ERROR, "Unknown command, aborting");
             return RuntimeError::UnknownCommand;
             break;
         }
-    cntWhile++;
+
+        if(cntWhile++ > MAX_PROC_OPERATIONS)
+            return RuntimeError::TooManyOperations;
     }
     return RuntimeError::noErr;
 }
@@ -119,9 +130,14 @@ RuntimeError getArg(Processor* proc, proc_arg_t** arg, proc_command_t command, p
     return RuntimeError::noErr;
 }
 
+//-----------------------------------------------------------------------------------------------
+
+
 RuntimeError RAM_getPtr(Processor* proc, proc_arg_t address, proc_arg_t** arg){
     LOG_ASSERT(proc != NULL);
     LOG_ASSERT(arg != NULL);
+
+    /*SLOW DOWN*/
 
     if(address <= 0)
         return RuntimeError::MemoryAccessErr;
@@ -130,24 +146,35 @@ RuntimeError RAM_getPtr(Processor* proc, proc_arg_t address, proc_arg_t** arg){
         *arg = proc->ram.data + address;
         return RuntimeError::noErr;
     }
+
     address-=RAM_SZ;
+
 #ifdef VIDEO
     if(address < DISPLAY_WIDHT * DISPLAY_HEIGHT){
         *arg = getVideoMemPtr(&(proc->videoDriver), address);
         return RuntimeError::noErr;
     }
 #endif
+
     return RuntimeError::MemoryAccessErr;
 }
 
+//-----------------------------------------------------------------------------------------------
+
 void processorFree(Processor* proc){
+    LOG_ASSERT(proc != NULL);
+
     stack_free(&proc->stack);
-    proc->status = ProcStatus::OFF;
+    free(proc->code);
+    
 #ifdef VIDEO
     finishVideo(&(proc->videoDriver));
 #endif
-    free(proc->code);
+    
+    proc->status = ProcStatus::OFF;
 }
+
+//-----------------------------------------------------------------------------------------------
 
 void procDump(Processor* proc){
     LOG_ASSERT(proc != NULL);
@@ -155,26 +182,34 @@ void procDump(Processor* proc){
     LOG_DEBUG_F("######### Processor dump ######\n")
     LOG_DEBUG_F("Processor status: %d \n", proc->status);
     LOG_DEBUG_F("IP value: %04x\n", proc->ip);
+
     LOG_DEBUG_F("Proc code dump:\n");
-    dumpBytes(proc->code + MAX(0 , proc->ip.asArg - 25), MIN(50, proc->code_sz - MAX(0, proc->ip.asArg - 25)), proc->ip.value - MAX(0, proc->ip.asArg - 25));
+    dumpBytes(proc->code + MAX(0 , proc->ip.asArg - 25), MIN(50ul, proc->code_sz - MAX(0, proc->ip.asArg - 25)), proc->ip.value - MAX(0, proc->ip.asArg - 25));
+    
     LOG_DEBUG_F("Proc reg dump\n");
     LOG_DEBUG_F("#############################################\n");
     LOG_DEBUG_F("# %8d # %8d # %8d # %8d #\n", proc->reg[1], proc->reg[2], proc->reg[3], proc->reg[4]);
     LOG_DEBUG_F("#############################################\n");
+    
     LOG_DEBUG_F("Proc mem dump\n");
     dumpMem(proc->ram.data, 20);
+
     LOG_DEBUG_F("Proc stack dump:\n");
     dumpStack(&proc->stack);
 }
 
+//-----------------------------------------------------------------------------------------------
+
 void dumpBytes(char* data, size_t n, size_t toColor){
     LOG_ASSERT(data != NULL);
+
     LOG_DEBUG_F("#");
     for(size_t i = 0; i < n; ++i){
         LOG_MESSAGE_F(NO_CAP, "###");
     }
     LOG_MESSAGE_F(NO_CAP, "#\n");
     LOG_MESSAGE_F(DEBUG, "#");
+    
     for(size_t i = 0; i < n; ++i){
         if(i == toColor){
             LOG_MESSAGE_F(NO_CAP, "\033[1;31m");
@@ -185,12 +220,15 @@ void dumpBytes(char* data, size_t n, size_t toColor){
         }
     }
     LOG_MESSAGE_F(NO_CAP, "#\n");
+    
     LOG_DEBUG_F("#");
     for(size_t i = 0; i < n; ++i){
         LOG_MESSAGE_F(NO_CAP, "###");
     }
     LOG_MESSAGE_F(NO_CAP, "#\n");
 }
+
+//-----------------------------------------------------------------------------------------------
 
 void dumpStack(Stack* stack){
     LOG_ASSERT(stack != NULL);
@@ -203,27 +241,34 @@ void dumpStack(Stack* stack){
 
 }
 
+//-----------------------------------------------------------------------------------------------
+
 void dumpMem(proc_arg_t* data, size_t n){
     LOG_ASSERT(data != NULL);
+
     LOG_DEBUG_F("#");
     for(size_t i = 0; i < n; ++i){
         LOG_MESSAGE_F(NO_CAP, "###\033[32m%03x\033[0m###", i);
     }
     LOG_MESSAGE_F(NO_CAP, "#\n");
     LOG_MESSAGE_F(DEBUG, "#");
+    
     for(size_t i = 0; i < n; ++i){
-        // if(i == toColor){
-            // LOG_MESSAGE_F(NO_CAP, "\033[1;31m");
-        // }
         LOG_MESSAGE_F(NO_CAP, "%08X ", data[i]);
-        // if(i == toColor){
-            // LOG_MESSAGE_F(NO_CAP, "\033[0m");
-        // }
     }
     LOG_MESSAGE_F(NO_CAP, "#\n");
+
     LOG_DEBUG_F("#");
     for(size_t i = 0; i < n; ++i){
         LOG_MESSAGE_F(NO_CAP, "#########");
     }
     LOG_MESSAGE_F(NO_CAP, "#\n");
+
+}
+
+//-------------------------------------------------------------------------------------------------
+
+int RAM_init(RAM* ram){
+    ram->data = (proc_arg_t*)calloc(RAM_SZ, sizeof(proc_arg_t));
+    return (ram->data != NULL);
 }

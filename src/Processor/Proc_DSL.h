@@ -1,12 +1,20 @@
 
-#define PUSH(arg)       stack_push(&proc->stack, arg)
+//+++++++++++++++++++++++++++++++++++++++++++++++
+#define PUSH(arg) {                             \
+    stack_push(&proc->stack, arg);              \
+    if(proc->stack.size > STACK_MAX_SZ)         \
+        return RuntimeError::StackOverflow;     \
+        }                                       \
+//+++++++++++++++++++++++++++++++++++++++++++++++
 
+//+++++++++++++++++++++++++++++++++++++++++++++++
 #define POP(argptr) {                           \
     if(proc->stack.size == 0){                  \
         return RuntimeError::EmptyStack;        \
         }                                       \
     stack_pop(&proc->stack, argptr);            \
     }while(0)                                   \
+//+++++++++++++++++++++++++++++++++++++++++++++++
 
 #define ARGPTR          argument
 

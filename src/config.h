@@ -5,9 +5,11 @@
 #define RAM_SZ 1024
 
 #define MAX_LABEL_LEN 32
+#define STACK_MAX_SZ  10240
+#define MAX_PROC_OPERATIONS 1000000
 
-#define DISPLAY_WIDHT  100u
-#define DISPLAY_HEIGHT 100u
+#define DISPLAY_WIDHT  100
+#define DISPLAY_HEIGHT 100
 
 #define VIDEO
 #define STEP_MODE
@@ -21,18 +23,19 @@
 #define LST_FORMAT  ".lst"
 
 
-const size_t PROGRAM_MIN_SZ = 1024;
-const size_t EXPAND_COEF    = 2;
-const size_t TO_EXPAND      = 4 * sizeof(int);
-const size_t MAX_LABELS     = 1024;
-const size_t MAX_ARGS       = 2;
+#define PROGRAM_MIN_SZ  1024
+#define EXPAND_COEF     2
+#define TO_EXPAND       (4 * sizeof(int))
+#define MAX_LABELS      1024
+#define MAX_ARGS        2
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmultichar"
-// const int SIGNATURE = 'D&P';
-const int SIGNATURE = 4466256;
+#define SIGNATURE 4466256 /*'D&P'*/
 #pragma GCC diagnostic pop
 
 #define NREGS 5 //0, a, b, c, d
+
+#define PIXEL_SZ 5
 
 #endif

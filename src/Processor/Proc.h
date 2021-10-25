@@ -14,11 +14,12 @@
 #endif
 
 enum class RuntimeError{
-    noErr,
-    MemoryAccessErr,
-    UnknownCommand,
-    EmptyStack,
-
+    noErr,              //No error
+    MemoryAccessErr,    //Memory access error
+    UnknownCommand,     //Unknown command
+    EmptyStack,         //Pop from empty stack
+    StackOverflow,      //Stack is too large
+    TooManyOperations,  //Too many operations. E.g. inf loop;
 };
 
 enum class ProcStatus{
@@ -30,67 +31,108 @@ enum class ProcStatus{
 };
 
 struct RAM{
-    proc_arg_t data[RAM_SZ];
+    proc_arg_t* data;
 };
 
+/**
+ * @brief Inits ram
+ * 
+ * @param ram 
+ * @return int if init successfull 
+ */
+int RAM_init(RAM* ram);
 
 struct Processor{
-    Stack stack = {};
-    char* code  = NULL;
+    Stack stack             = {};
+    RAM ram                 = {};
+    char* code              = NULL;
+    proc_arg_t reg[NREGS]   = {};
+
     size_t code_sz = 0;
-    proc_arg_t reg[NREGS] = {};
-    RAM ram = {};
 
 #ifdef VIDEO
     VideoDriver videoDriver = {};
 #endif
 
     ProcStatus status = ProcStatus::OFF;
-    proc_instruction_ptr_t ip = {0};
+    proc_instruction_ptr_t ip = {};
 };
 
+/**
+ * @brief Get request to memory and backs pointer to requested value.
+ * Should be slooooow;
+ * 
+ * @param proc      [in]
+ * @param address   [in]
+ * @param arg       [out]
+ * @return RuntimeError 
+ */
 RuntimeError RAM_getPtr(Processor* proc, proc_arg_t address, proc_arg_t** arg);
 
 /**
- * @brief 
+ * @brief Loads processor with code from file with given name
  * 
- * @param proc 
- * @param filename 
+ * @param proc      [in]
+ * @param filename  [out]
  */
 int processorLoad(Processor* proc, const char* filename );
 
 
 /**
- * @brief 
+ * @brief Start executing processor's code.
  * 
- * @param proc 
+ * @param proc [in]
+ * @return RuntimeError
  */
 RuntimeError processorExecute(Processor* proc);
 
 /**
- * @brief 
+ * @brief Frees processor
  * 
- * @param proc 
+ * @param proc  [in]
  */
 void processorFree(Processor* proc);
 
 /**
- * @brief Get the Arg object
+ * @brief Get the Arg object (proc_arg_t*)
  * 
- * @param proc 
- * @param arg 
- * @param command 
- * @param immArg 
+ * @param proc      [in]
+ * @param arg       [out]
+ * @param command   [in] - current command
+ * @param immArg    [out]- place for immArg
  * @return RuntimeError 
  */
 RuntimeError getArg(Processor* proc, proc_arg_t** arg, proc_command_t command, proc_arg_t* immArg);
 
+/**
+ * @brief Dumps processors info;
+ * 
+ * @param proc [in]
+ */
 void procDump(Processor* proc);
 
+/**
+ * @brief Dump n bytes from data. Colors (toColor)'s byte
+ * 
+ * @param data      [in]
+ * @param n         [in]
+ * @param toColor   [in]
+ */
 void dumpBytes(char* data, size_t n, size_t toColor = 0);
 
+/**
+ * @brief Dumps stack
+ * 
+ * @param stack [in]
+ */
 void dumpStack(Stack* stack);
 
+/**
+ * @brief Dump Memory of proc_arg_t
+ * 
+ * @param data [in]
+ * @param n    [in]
+ */
 void dumpMem(proc_arg_t* data, size_t n);
 
 #endif
