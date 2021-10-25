@@ -382,7 +382,7 @@ int isRegister(const char* s, proc_arg_t* value){
 
 //------------------------------------------------------------------------------
 
-int isNumber(const char* s, proc_arg_t* value){
+int isImmediate(const char* s, proc_arg_t* value){
     LOG_ASSERT(value != NULL);
     if(s == NULL)
         return 0;
@@ -406,7 +406,7 @@ CompilationError parseArgument(AsmData* asmData, proc_command_t* command, char* 
     LOG_ASSERT(argStr  != NULL);
     LOG_ASSERT(argVal  != NULL);
 
-    if(!command->flags.argImm && isNumber(argStr, argVal)){
+    if(!command->flags.argImm && isImmediate(argStr, argVal)){
         command->flags.argImm = 1;
         return CompilationError::noErr;
     }

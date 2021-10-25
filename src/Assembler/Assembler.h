@@ -5,22 +5,29 @@
 #include "../../lib/text.h"
 #include "../proc_t.h"
 #include "../utils.h"
-
-#define MAX_LABEL_LEN 32
+#include "../config.h"
 
 enum class CompilationError{
-    noErr = 0,
-    UnknownCommand,
-    MemoryError,
-    RuntimeError,
-    SyntaxError,
+    noErr = 0,              //No error
+    UnknownCommand,         //Unknown command
+    MemoryError,            //Memory allocation error
+    RuntimeError,           //Error on runtime
+    SyntaxError,            //Syntax error
 };
 
+/**
+ * @brief Label structure. Keep ip and name of label (without:)
+ * 
+ */
 struct Label{
-    proc_instruction_ptr_t ip;
-    char name[MAX_LABEL_LEN];
+    proc_instruction_ptr_t ip = {};
+    char name[MAX_LABEL_LEN]  = {};
 };
 
+/**
+ * @brief Sturcture keeps all neccessary assembly data.
+ * 
+ */
 struct AsmData{
     char* code  = NULL;
     size_t capacity = 0;
@@ -43,14 +50,14 @@ struct AsmData{
 void asmDataCtor(AsmData* asmData, const char* filename);
 
 /**
- * @brief 
+ * @brief asmData destructor
  * 
  * @param asmData 
  */
 void asmDataDtor(AsmData* asmData);
 
 /**
- * @brief 
+ * @brief checks if asmData->code is to be expanded
  * 
  * @param asmData 
  * @return int 
@@ -58,7 +65,6 @@ void asmDataDtor(AsmData* asmData);
 int isToExpand(const AsmData* asmData);
 
 /**
- * 
  * @brief Expands asmData.
  * 
  * @param asmData 
@@ -74,19 +80,21 @@ void expandData(AsmData* asmData);
 CompilationError assemblyFile(const char* filename);
 
 /**
- * @brief Assemblyes single line.
+ * @brief Assemblyes single line
  * 
- * @param asmData current data.
- * @param line  - string to compile
- * @return CompilationError - error occuded during compilation 
+ * @param asmData 
+ * @param line  - string to assmebly
+ * @return CompilationError 
  */
 CompilationError assemblyLine(AsmData* asmData, char* line);
 
 /**
- * @brief Parces argument of command.
+ * @brief Parses single argument string
  * 
  * @param asmData 
- * @param command 
+ * @param command - current command
+ * @param argStr  - 
+ * @param argVal 
  * @return CompilationError 
  */
 CompilationError parseArgument(AsmData* asmData, proc_command_t* command, char* argStr, proc_arg_t* argVal);
@@ -108,43 +116,49 @@ void registerLabel(AsmData* asmData, const char* name, proc_instruction_ptr_t ip
 proc_instruction_ptr_t getLabel(AsmData* asmData, const char* name);
 
 /**
- * @brief 
+ * @brief Writes data to lstFile; works only on last walkthrough and LISTENIG_FILE defined
  * 
- * @param lstFile 
- * @param format 
+ * @param asmData [in]
+ * @param format  [in] - same as printf
  * @param ... 
  */
-void lstWrite(AsmData* asmData, const char* format, ...);
+ void lstWrite(AsmData* asmData, const char* format, ...);
+
 /**
- * @brief 
+ * @brief write array of bytes(data, n) to lstFile
  * 
- * @param asmData 
- * @param data 
- * @param n 
+ * @param asmData   [in]
+ * @param data      [in]
+ * @param n         [in]
  */
 void lstWriteBytes(AsmData* asmData, const char* data, const size_t n);
+
 /**
- * @brief 
+ * @brief Checks if s suits to label name. If so backs it's value
  * 
- * @param s 
- * @param value 
- * @return int 
+ * @param s         [in]
+ * @param value     [out]
+ * @param asmData   [in]
+ * @return int 1/0 suits / no
  */
 int isLabel(char* s, proc_arg_t *value, AsmData* asmData);
+
 /**
- * @brief 
+ * @brief Checks if s suits to imm argument. If so backs it's value
  * 
- * @param s 
- * @param value 
- * @return int 
+ * @param s     [in]
+ * @param value [out]
+ * @return int 1/0 suits/0
  */
-int isNumber(const char* s, proc_arg_t* value);
+int isImmediate(const char* s, proc_arg_t* value);
+
 /**
- * @brief 
+ * @brief Checks if s suits to reg argument. If so backs it's value
  * 
- * @param s 
- * @param value 
- * @return int 
+ * @param s     [in]
+ * @param value [out]
+ * @return int 1/0 suits/0
  */
 int isRegister(const char* s, proc_arg_t* value);
+
 #endif

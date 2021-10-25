@@ -2,8 +2,7 @@
 #define PROC_PROC_T_H
 #include <stdlib.h>
 #include "../lib/version.h"
-
-#define NREGS 5 //0, a, b, c, d
+#include "config.h"
 
 struct FileHeader{
     int signature  = 0;
@@ -11,11 +10,6 @@ struct FileHeader{
     int mn_verison = 0;
     int bd_version = 0;
 };
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wmultichar"
-const int SIGNATURE = 'D&P';
-#pragma GCC diagnostic pop
 
 const FileHeader BIN_FILE_HEADER = {SIGNATURE, MAJOR_VERSION, MINOR_VERSION, BUILD_VERSION};
 
@@ -42,6 +36,5 @@ union proc_instruction_ptr_t
 };
 
 typedef unsigned int proc_err_t;
-
 
 #endif
