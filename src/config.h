@@ -1,6 +1,16 @@
 #ifndef PROC_CONFIG_H
 #define PROC_CONFIG_H
 
+//############# Work mode #######################
+
+#define VIDEO
+// #define STEP_MODE
+// #define DUMPING
+#define LISTENIG_FILE
+
+// #define HOLLOW_RECT
+
+//############### Hardware ######################
 #define NREGS  5 //0, a, b, c, d
 #define RAM_SZ 1024
 
@@ -11,14 +21,8 @@
 #define DISPLAY_WIDHT  100
 #define DISPLAY_HEIGHT 100
 
-#define VIDEO
-#define STEP_MODE
-#define DUMPING
-#define LISTENIG_FILE
 
-// #define HOLLOW_RECT
-
-
+//############### Other constants ###############
 #define OUT_FORMAT  ".out"
 #define LST_FORMAT  ".lst"
 
@@ -34,7 +38,6 @@
 #define SIGNATURE 4466256 /*'D&P'*/
 #pragma GCC diagnostic pop
 
-#define NREGS 5 //0, a, b, c, d
 
 #define PIXEL_SZ 5
 

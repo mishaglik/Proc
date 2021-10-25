@@ -177,6 +177,7 @@ void processorFree(Processor* proc){
 //-----------------------------------------------------------------------------------------------
 
 void procDump(Processor* proc){
+    #ifdef DUMPING
     LOG_ASSERT(proc != NULL);
 
     LOG_DEBUG_F("######### Processor dump ######\n")
@@ -196,6 +197,9 @@ void procDump(Processor* proc){
 
     LOG_DEBUG_F("Proc stack dump:\n");
     dumpStack(&proc->stack);
+    #else
+    return;
+    #endif
 }
 
 //-----------------------------------------------------------------------------------------------
@@ -270,5 +274,5 @@ void dumpMem(proc_arg_t* data, size_t n){
 
 int RAM_init(RAM* ram){
     ram->data = (proc_arg_t*)calloc(RAM_SZ, sizeof(proc_arg_t));
-    return (ram->data != NULL);
+    return (ram->data == NULL);
 }

@@ -5,8 +5,6 @@
 
 #define LEXEM "[A-Za-z0-9:_-]"
 
-extern const int SIGNATURE;
-
 const proc_instruction_ptr_t UNDEF_PT = {-1};
 
 const int ASM_WALKS = 2;

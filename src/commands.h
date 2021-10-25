@@ -3,44 +3,42 @@
  * name  - name of command
  * value - number of format 0b00000000
  *                            ^^^
- *                             ||
- * TODO: Documentation  
- * ARG
- * PUSH()
- * POP()
- * Command list (with mask 0b00011111):
- * 0x00 - htl
- * 0x01 - push
- * 0x02 - pop
- * 0x03 - add
- * 0x04 - sub
- * 0x05 - mul
- * 0x06 - div
- * 0x07 - out
- * 0x08 - in
- * 0x09 - outc
- * 0x0A - outf
- * 0x0B - shl
- * 0x0C - shr
- * 0x0D - sleep
- * 0x0E - pause
- * 0x0F - sqrt
- * 0x10 - jmp
- * 0x11 - ja
- * 0x12 - jae
- * 0x13 - jb
- * 0x14 - jbe
- * 0x15 - jeq
- * 0x16 - jne
+ *                            argMem argReg argImm
+ * code  - what code to execute wwith command
+ * 
+ * Command list (with mask 0b00011111): Argument a and b from stack. b is popped first
+ * 0x00 - htl   - stop sprogramm
+ * 0x01 - push  - push arg to stack
+ * 0x02 - pop   - pop  arg from stack
+ * 0x03 - add   - a + b
+ * 0x04 - sub   - a - b
+ * 0x05 - mul   - a*b
+ * 0x06 - div   - a/b
+ * 0x07 - out   - print(a)
+ * 0x08 - in    - scan() to stack
+ * 0x09 - outc  - print(%c, a)
+ * 0x0A - outf  - print(%f, a/b)
+ * 0x0B - shl   - a << b
+ * 0x0C - shr   - a >> b
+ * 0x0D - sleep - make sleep for ms from stack
+ * 0x0E - pause - pause untill user action
+ * 0x0F - sqrt  - int sqrt(a);
+ * 0x10 - jmp   - jump
+ * 0x11 - ja    - jump a >  b
+ * 0x12 - jae   - jump a >= b
+ * 0x13 - jb    - jump a <  b
+ * 0x14 - jbe   - jump a <= b
+ * 0x15 - jeq   - jump a == b
+ * 0x16 - jne   - jump a != b
  * 0x17 - 
- * 0x18 - call
- * 0x19 - ret
+ * 0x18 - call  - call function
+ * 0x19 - ret   - return from function
  * 0x1A - 
  * 0x1B - 
  * 0x1C - 
  * 0x1D -
- * 0x1E - draw
- * 0x1F - ERROR
+ * 0x1E - draw  - only if have VIDEO. displays from video mem
+ * 0x1F - ERROR - Error command
  
  * 
  */

@@ -14,7 +14,7 @@ SANFLAGS = `cat $(LIB_DIR)SanitizeFlags`
 LXXFLAGS = -L$(LIB_DIR) $(addprefix -l, $(LIBRARIES))
 
 MAJOR_VERSION = 6
-MINOR_VERSION = 2
+MINOR_VERSION = 4
 BUILD_VERSION = `cat bld_version`
 # TODO: Auto increment version
 
