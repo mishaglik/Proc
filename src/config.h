@@ -3,9 +3,9 @@
 
 //############# Work mode #######################
 
-#define VIDEO
-// #define STEP_MODE
-// #define DUMPING
+// #define VIDEO
+#define STEP_MODE
+#define DUMPING
 #define LISTENIG_FILE
 
 // #define HOLLOW_RECT

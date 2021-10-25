@@ -53,12 +53,14 @@ void disassemblyFile(const char* filename){
 
             LOG_DEBUG_F("Command %02X\n", command.value);
             
-            switch (command.value & NUM_MASK)
+            switch (command.flags.id)
             {
+            //+++++++++++++++++++++++++++++++++++++
             #define COM_DEF(name, num, code, ...) \
                 case (num & NUM_MASK):            \
                     commandName = #name;          \
-                    break;
+                    break;                        \
+            //+++++++++++++++++++++++++++++++++++++
 
             #include "../commands.h"
 

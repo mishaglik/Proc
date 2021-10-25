@@ -71,7 +71,7 @@ RuntimeError processorExecute(Processor* proc){
             PAUSE;
         #endif
         
-        switch (command.value & NUM_MASK)
+        switch (command.flags.id)
         {
         //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++    
         #define COM_DEF(name, num, code, ...)                                           \
@@ -188,9 +188,9 @@ void procDump(Processor* proc){
     dumpBytes(proc->code + MAX(0 , proc->ip.asArg - 25), MIN(50ul, proc->code_sz - MAX(0, proc->ip.asArg - 25)), proc->ip.value - MAX(0, proc->ip.asArg - 25));
     
     LOG_DEBUG_F("Proc reg dump\n");
-    LOG_DEBUG_F("#############################################\n");
-    LOG_DEBUG_F("# %8d # %8d # %8d # %8d #\n", proc->reg[1], proc->reg[2], proc->reg[3], proc->reg[4]);
-    LOG_DEBUG_F("#############################################\n");
+    LOG_DEBUG_F("#############################################################\n");
+    LOG_DEBUG_F("# %12d # %12d # %12d # %12d #\n", proc->reg[1], proc->reg[2], proc->reg[3], proc->reg[4]);
+    LOG_DEBUG_F("#############################################################\n");
     
     LOG_DEBUG_F("Proc mem dump\n");
     dumpMem(proc->ram.data, 20);

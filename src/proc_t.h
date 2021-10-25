@@ -24,7 +24,6 @@ union proc_command_t
     } flags;
 };
 
-const unsigned char NUM_MASK = 0b00011111;
 
 typedef int proc_arg_t;
 union proc_instruction_ptr_t
@@ -37,4 +36,5 @@ union proc_instruction_ptr_t
 
 typedef unsigned int proc_err_t;
 
+const unsigned char NUM_MASK = 0b00011111;
 #endif
