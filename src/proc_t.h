@@ -5,10 +5,10 @@
 #include "config.h"
 
 struct FileHeader{
-    int signature  = 0;
-    int mj_version = 0;
-    int mn_verison = 0;
-    int bd_version = 0;
+    unsigned signature  = 0;
+    unsigned mj_version = 0;
+    unsigned mn_verison = 0;
+    unsigned bd_version = 0;
 };
 
 const FileHeader BIN_FILE_HEADER = {SIGNATURE, MAJOR_VERSION, MINOR_VERSION, BUILD_VERSION};
@@ -16,6 +16,7 @@ const FileHeader BIN_FILE_HEADER = {SIGNATURE, MAJOR_VERSION, MINOR_VERSION, BUI
 union proc_command_t
 {   
     char value;
+
     struct{
     unsigned char id    :5;
     unsigned char argImm:1;
@@ -23,7 +24,6 @@ union proc_command_t
     unsigned char argMem:1;
     } flags;
 };
-
 
 typedef int proc_arg_t;
 union proc_instruction_ptr_t

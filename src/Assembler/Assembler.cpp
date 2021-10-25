@@ -1,13 +1,14 @@
-#include "Assembler.h"
 #include <string.h>
 #include <ctype.h>
 #include <stdarg.h>
+#include "Assembler.h"
 
-#define LEXEM "[A-Za-z0-9:_-]"
+
+#define TOKEN "[A-Za-z0-9:_-]"
 
 const proc_instruction_ptr_t UNDEF_PT = {-1};
 
-const int ASM_WALKS = 2;
+const int ASM_PASSES = 2;
 
 CompilationError assemblyFile(const char* filename){
     LOG_ASSERT(filename != NULL);
@@ -36,10 +37,9 @@ CompilationError assemblyFile(const char* filename){
 //##################Parsing nd Assemblying#########################################################
     LOG_MESSAGE_F(INFO,"Begin parsing text\n");
     parseText(&programm_txt);
-    
     LOG_MESSAGE_F(INFO,"Begin assemblying text\n");
-    for(; asmData.nWalk < ASM_WALKS && err == CompilationError::noErr; asmData.nWalk++){
-        LOG_MESSAGE_F(INFO, "Walkthrough %d\n", asmData.nWalk);
+    for(; asmData.nPass < ASM_PASSES && err == CompilationError::noErr; asmData.nPass++){
+        LOG_MESSAGE_F(INFO, "Walkthrough %d\n", asmData.nPass);
         asmData.ip.value = 0;
         for(size_t line = 0; line < programm_txt.nStrings; ++line){
             LOG_MESSAGE_F(INFO, "Line %d:\n", line);
@@ -53,10 +53,10 @@ CompilationError assemblyFile(const char* filename){
                 expandData(&asmData);
         }
     }
-    LOG_MESSAGE_F(INFO,"Assemblying finished with error code = %d\n");
+    LOG_MESSAGE_F(INFO,"Assemblying finished with error code = %d\n", err);
 
 //##########################Output and freeing#####################################################
-    LOG_MESSAGE_F(INFO, "Out & free\n", err);
+    LOG_MESSAGE_F(INFO, "Out & free\n");
     if(err == CompilationError::noErr){
         FILE* outFile = createOutFile(filename, OUT_FORMAT);
         LOG_ASSERT(outFile != NULL);
@@ -87,34 +87,34 @@ CompilationError assemblyLine(AsmData* asmData, char* line){
         *commentSym = '\0';
     }
 
-    char* lexem  = NULL;
+    char  token[MAX_TOKEN_LEN]  = {};
     char* curChr = line;
     int   nRead  = 0;
 
-    sscanf(curChr, " %m"LEXEM"%n", &lexem, &nRead);
+    sscanf(curChr, " %"TOKEN"%n", token, &nRead);
     curChr += nRead;
-    if(lexem == NULL || *lexem == '\0'){
+
+    if(token[0] == '\0'){
         LOG_MESSAGE_F(INFO, "Skipped: %s\n", line);
         return isEndStr(line) ? CompilationError::noErr : CompilationError::SyntaxError;
     }
 
 //########################## Directives #######################################
-    
-    if(isLabel(lexem, NULL, asmData)){
-        LOG_MESSAGE_F(INFO, "Label: %s\n", lexem);
-        registerLabel(asmData, lexem, asmData->ip);
-        lstWrite(asmData, "%04x %s\n", asmData->ip.value, lexem);
-        free(lexem);
+    if(isLabel(token, NULL, asmData)){
+        LOG_MESSAGE_F(INFO, "Label: %s\n", token);
+        
+        registerLabel(asmData, token, asmData->ip);
+        lstWrite(asmData, "%04x %s\n", asmData->ip.value, token);
+        
         return isEndStr(curChr) ? CompilationError::noErr : CompilationError::SyntaxError;
     }
 
 //########################## Commands   #######################################
-    
     proc_command_t command = {};
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #define COM_DEF(name, val, ...)                                 \
-    if(strcmp(#name, lexem) == 0) {                             \
+    if(strcmp(#name, token) == 0) {                             \
         command.value = (char)val;                              \
     }else                                                       \
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -122,70 +122,31 @@ CompilationError assemblyLine(AsmData* asmData, char* line){
     #include "../commands.h"
 
     /*else*/{
-        LOG_MESSAGE_F(ERROR, "Error: Unknown command: %s\n", lexem);
+        LOG_MESSAGE_F(ERROR, "Error: Unknown command: %s\n", token);
         return CompilationError::SyntaxError;
     }
 
     #undef COM_DEF
 
     lstWrite(asmData, "%04x %-15.15s ", asmData->ip.value, line);
-    LOG_MESSAGE_F(INFO, "Command: %s\n", lexem);
+    LOG_MESSAGE_F(INFO, "Command: %s\n", token);
 
-    free(lexem);
 // ####################### ARGUMENTS ##########################################
     proc_arg_t args[MAX_ARGS] = {};
-    
     int nArg = 0;
 
     if(command.flags.argImm){             //Has argument
         command.flags.argImm = 0;
         command.flags.argReg = 0;
         command.flags.argMem = 0;
-
-        char* argStr1 = NULL;
-        char* argStr2 = NULL;
-        
-        //Try scan as memory argument.
-        //!@warning Malloc!
-        nArg = sscanf(curChr, " [ %m"LEXEM"%n + %m"LEXEM"]%n", &argStr1, &nRead, &argStr2, &nRead);
-
-        if(nArg > 0){
-            command.flags.argMem = 1;
-            if(nArg == 1){
-                if(*(curChr + nRead) != ']'){
-                    err = CompilationError::SyntaxError;
-                }
-                else nRead++;
-            }
-        }
-        else{
-            //Try scan as normal argument
-            //!@warning Malloc!
-            nArg = sscanf(curChr, " %m"LEXEM"%n + %m"LEXEM"%n", &argStr1, &nRead, &argStr2, &nRead);
-        }
-
-        curChr += nRead;
-        LOG_DEBUG_F("%d %s %s\n", nArg, argStr1, argStr2);
-
-        if(nArg <= 0){
-            return CompilationError::SyntaxError;
-        }
-
-        err = parseArgument(asmData, &command, argStr1, args);
-
-        if(nArg == 2 && err != CompilationError::noErr){
-            int toSwap = command.flags.argImm;
-            err = parseArgument(asmData, &command, argStr2, args + 1);
-            if(toSwap){
-                swapInt(args, args + 1);
-            }
-        }
-        free(argStr1);
-        free(argStr2);
-        if(err != CompilationError::noErr)
-            return err;
+        err = assemblyArguments(asmData, args, &nArg, &command, &curChr);
     }
 
+    if(err != CompilationError::noErr){
+        return err;
+    }
+
+//######################## OUTPUT ###############################################s
     lstWrite(asmData, "%02X ", (unsigned char)command.value);
     asmData->code[asmData->ip.value] = command.value;
     asmData->ip.commandPtr++;
@@ -203,14 +164,13 @@ CompilationError assemblyLine(AsmData* asmData, char* line){
     lstWrite(asmData, "\n");
     return err;
 }
-
 //---------------------------------------------------------------------------------
 
 void lstWrite(AsmData* asmData, const char* format, ...){
     LOG_ASSERT(asmData != NULL);
     LOG_ASSERT(format != NULL);
 
-    if(asmData->nWalk != ASM_WALKS - 1)
+    if(asmData->nPass != ASM_PASSES - 1)
         return;
 
     va_list args;
@@ -249,7 +209,7 @@ void asmDataCtor(AsmData* asmData, const char* filename){
     LOG_ASSERT(asmData->lstFile != NULL);
 
     asmData->ip.value = 0;
-    asmData->nWalk = 0;
+    asmData->nPass = 0;
 }
 
 //---------------------------------------------------------------------------------
@@ -284,7 +244,7 @@ void expandData(AsmData* asmData){
 void registerLabel(AsmData* asmData, const char* name, proc_instruction_ptr_t ip){
     LOG_ASSERT(name != NULL);
     LOG_ASSERT(asmData != NULL);
-    if(asmData->nWalk != 0)
+    if(asmData->nPass != 0)
         return;
 
     if(asmData->nLabels == MAX_LABELS){
@@ -334,7 +294,7 @@ proc_instruction_ptr_t getLabel(AsmData* asmData, const char* name){
         }
     }
 
-    if(asmData->nWalk == 0){
+    if(asmData->nPass == 0){
         registerLabel(asmData, name, UNDEF_PT);
     }
     else{
@@ -437,4 +397,50 @@ CompilationError parseArgument(AsmData* asmData, proc_command_t* command, char* 
         return CompilationError::noErr;
     }
     return CompilationError::SyntaxError;
+}
+
+//--------------------------------------------------------------------------------------
+
+CompilationError assemblyArguments(AsmData* asmData, proc_arg_t args[MAX_ARGS], int* nArg, proc_command_t* command, char** curChr){
+    LOG_ASSERT(asmData != NULL);
+    LOG_ASSERT(args    != NULL);
+    LOG_ASSERT(nArg    != NULL);
+    LOG_ASSERT(curChr  != NULL);
+    LOG_ASSERT(*curChr != NULL);
+
+    CompilationError err = CompilationError::noErr;
+    char argStr[MAX_ARGS][MAX_TOKEN_LEN] = {}; 
+    int nRead = 0;
+    *nArg = sscanf(*curChr, " [ %"TOKEN"%n + %"TOKEN"]%n", argStr[1], &nRead, argStr[2], &nRead);
+
+    if(*nArg > 0){
+        command->flags.argMem = 1;
+        if(*nArg == 1){
+            if(*(*curChr + nRead) != ']'){
+                err = CompilationError::SyntaxError;
+            }
+            else nRead++;
+        }
+    }
+    else{
+        *nArg = sscanf(*curChr, " %"TOKEN"%n + %"TOKEN"%n", argStr[1], &nRead, argStr[2], &nRead);
+    }
+
+    *curChr += nRead;
+    LOG_DEBUG_F("%d %s %s\n", nArg, argStr[1], argStr[2]);
+
+    if(*nArg <= 0){
+        return CompilationError::SyntaxError;
+    }
+
+    err = parseArgument(asmData, command, argStr[1], args);
+
+    if(*nArg == 2 && err != CompilationError::noErr){
+        int toSwap = command->flags.argImm;
+        err = parseArgument(asmData, command, argStr[2], args + 1);
+        if(toSwap){
+            swapInt(args, args + 1);
+        }
+    }
+    return err;
 }

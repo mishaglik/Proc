@@ -1,18 +1,18 @@
 #ifndef PROC_ASSEMBLER_ASSEMBLER_H
 #define PROC_ASSEMBLER_ASSEMBLER_H
 
+#include "../config.h"
 #include "../../lib/Logger.h"
 #include "../../lib/text.h"
 #include "../proc_t.h"
 #include "../utils.h"
-#include "../config.h"
 
 enum class CompilationError{
-    noErr = 0,              //No error
-    UnknownCommand,         //Unknown command
-    MemoryError,            //Memory allocation error
-    RuntimeError,           //Error on runtime
-    SyntaxError,            //Syntax error
+    noErr = 0,              // No error
+    UnknownCommand,         // Unknown command
+    MemoryError,            // Memory allocation error
+    RuntimeError,           // Error on runtime
+    SyntaxError,            // Syntax error
 };
 
 /**
@@ -34,7 +34,7 @@ struct AsmData{
 
     proc_instruction_ptr_t ip = {0};
 
-    int nWalk = 0;
+    int nPass = 0;
 
     Label* labels = NULL;
     size_t nLabels = 0;
@@ -161,4 +161,5 @@ int isImmediate(const char* s, proc_arg_t* value);
  */
 int isRegister(const char* s, proc_arg_t* value);
 
+CompilationError assemblyArguments(AsmData* asmData, proc_arg_t args[MAX_ARGS], int* nArg, proc_command_t* command, char** curChr);
 #endif

@@ -1,44 +1,50 @@
 #ifndef PROC_CONFIG_H
 #define PROC_CONFIG_H
-
+#include <stdlib.h>
 //############# Work mode #######################
 
-// #define VIDEO
-#define STEP_MODE
-#define DUMPING
+#define VIDEO
+// #define STEP_MODE
+// #define DUMPING
 #define LISTENIG_FILE
 
-// #define HOLLOW_RECT
+#define HOLLOW_RECT
 
 //############### Hardware ######################
-#define NREGS  5 //0, a, b, c, d
-#define RAM_SZ 1024
+const size_t NREGS                  = 5; //0, a, b, c, d
+const size_t RAM_SZ                 = 1024;
 
-#define MAX_LABEL_LEN 32
-#define STACK_MAX_SZ  10240
-#define MAX_PROC_OPERATIONS 1000000
+const size_t MAX_TOKEN_LEN          = 32;
+const size_t MAX_LABEL_LEN          = MAX_TOKEN_LEN;
+const size_t STACK_MAX_SZ           = 10240;
+const size_t MAX_PROC_OPERATIONS    = 1000000;
 
-#define DISPLAY_WIDHT  100
-#define DISPLAY_HEIGHT 100
+const size_t DISPLAY_WIDHT          = 100;
+const size_t DISPLAY_HEIGHT         = 100;
 
 
 //############### Other constants ###############
-#define OUT_FORMAT  ".out"
-#define LST_FORMAT  ".lst"
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-variable"
+static const char* OUT_FORMAT = ".out";
+static const char* LST_FORMAT = ".lst";
+#pragma GCC diagnostic pop
 
-
-#define PROGRAM_MIN_SZ  1024
-#define EXPAND_COEF     2
-#define TO_EXPAND       (4 * sizeof(int))
-#define MAX_LABELS      1024
-#define MAX_ARGS        2
+const size_t PROGRAM_MIN_SZ  = 1024;
+const size_t EXPAND_COEF     = 2;
+const size_t TO_EXPAND       = (4 * sizeof(int));
+const size_t MAX_LABELS      = 1024;
+const size_t MAX_ARGS        = 2;
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmultichar"
-#define SIGNATURE 4466256 /*'D&P'*/
+
+const unsigned SIGNATURE = 0x00442650; /*'D&P'*/
 #pragma GCC diagnostic pop
+//TODO: Def
 
+const size_t PIXEL_SZ = 5;
 
-#define PIXEL_SZ 5
+const size_t LAYOUT_BEGIN_PROG = 256;
 
 #endif

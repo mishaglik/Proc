@@ -48,6 +48,16 @@
 #error  COM_DEF not defined
 #endif
 
+//+++++++++++++++++++++++++++++++++++++++++++++++
+#define COM_DEF_ARITHM(name, num, arth, check)  \
+    COM_DEF(name, num, {                        \
+        POP(&TMP1);                             \
+        POP(&TMP2);                             \
+        {check};                                \
+        PUSH(TMP2 arth TMP1);                   \
+    })                                          \
+//+++++++++++++++++++++++++++++++++++++++++++++++
+
 COM_DEF(hlt,    0b00000000, {
     HLT;
 })
@@ -60,33 +70,19 @@ COM_DEF(pop,    0b11100010, {
     POP(ARGPTR);
 })
 
-COM_DEF(add,    0b00000011, {
-    POP(&TMP1);
-    POP(&TMP2);
-    PUSH(TMP1 + TMP2);
-})
+COM_DEF_ARITHM(add,    0b00000011, +, ;)
 
-COM_DEF(sub,    0b00000100, {
-    POP(&TMP1);
-    POP(&TMP2);
-    PUSH(TMP2 - TMP1);
-})
+COM_DEF_ARITHM(sub,    0b00000100, -, ;)
 
-COM_DEF(mul,    0b00000101, {
-    POP(&TMP1);
-    POP(&TMP2);
-    PUSH(TMP1 * TMP2);
-})
+COM_DEF_ARITHM(mul,    0b00000101, *, ;)
 
-COM_DEF(div,    0b00000110, {
-    POP(&TMP1);
-    POP(&TMP2);
-    if(!TMP2){
-        LOG_MESSAGE_F(ERROR, "Zero Division error");
-        ERR;
-    }
-    PUSH(TMP2 / TMP1);
-})
+//+++++++++++++++++++++++++++++++++++++++++++++++++++
+COM_DEF_ARITHM(div,    0b00000110, +, {             \
+    if(!TMP2){                                      \
+        LOG_MESSAGE_F(ERROR, "Zero Division error");\
+        ERR;                                        \
+    }})                                             \
+//+++++++++++++++++++++++++++++++++++++++++++++++++++
 
 COM_DEF(out,    0b00000111, {
     POP(&TMP1);
@@ -113,19 +109,11 @@ COM_DEF(outf,   0b00001010, {
     OUTF(TMP2, TMP1);
 })
 
-COM_DEF(shl,    0b00001011, {
-    POP(&TMP1);
-    POP(&TMP2);
-    PUSH(TMP2 << TMP1);
-})
+COM_DEF_ARITHM(shl,    0b00001011, <<, ;)
 
-COM_DEF(shr,    0b00001100, {
-    POP(&TMP1);
-    POP(&TMP2);
-    PUSH(TMP2 >> TMP1);
-})
+COM_DEF_ARITHM(shr,    0b00001100, >>, ;)
 
-COM_DEF(pau,    0b00001101, {
+COM_DEF(wait,    0b00001101, {
     PAUSE;
 })
 
@@ -134,7 +122,7 @@ COM_DEF(slp,    0b00001110, {
     SLEEP(TMP1);
 })
 
-COM_DEF(srt,   0b00001111, {
+COM_DEF(sqrt,   0b00001111, {
     POP(&TMP1);
     if(TMP1 < 0)
         ERR;
@@ -184,3 +172,5 @@ COM_DEF(draw, 0b00011110, {
     ERR;
     #endif
 })
+
+#undef COM_DEF_ARITHM

@@ -147,7 +147,7 @@ RuntimeError RAM_getPtr(Processor* proc, proc_arg_t address, proc_arg_t** arg){
         return RuntimeError::noErr;
     }
 
-    address-=RAM_SZ;
+    address -= RAM_SZ;
 
 #ifdef VIDEO
     if(address < DISPLAY_WIDHT * DISPLAY_HEIGHT){
@@ -166,6 +166,8 @@ void processorFree(Processor* proc){
 
     stack_free(&proc->stack);
     free(proc->code);
+
+    free(proc->ram.data);
     
 #ifdef VIDEO
     finishVideo(&(proc->videoDriver));
