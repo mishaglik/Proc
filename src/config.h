@@ -17,6 +17,16 @@
 // #define HOLLOW_RECT
 
 
+#define OUT_FORMAT  ".out"
+#define LST_FORMAT  ".lst"
+
+
+const size_t PROGRAM_MIN_SZ = 1024;
+const size_t EXPAND_COEF    = 2;
+const size_t TO_EXPAND      = 4 * sizeof(int);
+const size_t MAX_LABELS     = 1024;
+const size_t MAX_ARGS       = 2;
+
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmultichar"
 // const int SIGNATURE = 'D&P';
